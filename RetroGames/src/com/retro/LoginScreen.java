@@ -20,6 +20,18 @@ public class LoginScreen extends JFrame {
         JPasswordField passText = new JPasswordField(20);
         JButton loginButton = new JButton("Login");
         JButton registerButton = new JButton("Register");
+        
+     // Add components to frame
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(3, 2));
+        panel.add(userLabel);
+        panel.add(userText);
+        panel.add(passLabel);
+        panel.add(passText);
+        panel.add(loginButton);
+        panel.add(registerButton);
+        add(panel);
+        
     }
     
     
