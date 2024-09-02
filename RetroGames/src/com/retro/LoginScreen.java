@@ -6,6 +6,7 @@ import java.awt.event.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class LoginScreen extends JFrame {
@@ -42,19 +43,40 @@ public class LoginScreen extends JFrame {
         loginButton.addActionListener(e -> {
             String username = userText.getText();
             String password = new String(passText.getPassword());
-            
-            // Call connect() to test the database connection
+
             Connection conn = connect();
-            
+
             if (conn != null) {
-                JOptionPane.showMessageDialog(null, "Connected to the database!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                // TODO: Handle login logic with a valid connection
-                System.out.println("Login clicked: " + username + " " + password);
-                
                 try {
-                    conn.close(); // Always close the connection after use
+                    // Prepare SQL query to find the user
+                    String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+                    PreparedStatement preparedStatement = conn.prepareStatement(query);
+                    preparedStatement.setString(1, username);
+                    preparedStatement.setString(2, password);
+
+                    ResultSet resultSet = preparedStatement.executeQuery();
+
+                    if (resultSet.next()) {
+                        // User exists and credentials are correct
+                        JOptionPane.showMessageDialog(null, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        // TODO: Redirect to the next screen or perform another action
+                    } else {
+                        // User does not exist or credentials are incorrect
+                        JOptionPane.showMessageDialog(null, "Invalid username or password!", "Login Failed", JOptionPane.ERROR_MESSAGE);
+                    }
+                    
+                    // Close the ResultSet and PreparedStatement
+                    resultSet.close();
+                    preparedStatement.close();
+
                 } catch (SQLException ex) {
                     ex.printStackTrace();
+                } finally {
+                    try {
+                        conn.close(); // Close the connection after use
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
+                    }
                 }
             } else {
                 System.out.println("Failed to connect to the database.");
