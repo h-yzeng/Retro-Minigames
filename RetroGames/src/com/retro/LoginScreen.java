@@ -9,6 +9,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.mindrot.jbcrypt.BCrypt; // Import BCrypt for hashing passwords
+
 public class LoginScreen extends JFrame {
 
     // Constructor to set up GUI components
@@ -44,24 +46,32 @@ public class LoginScreen extends JFrame {
             String username = userText.getText();
             String password = new String(passText.getPassword());
 
+            if (username.isEmpty() || password.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Please enter both username and password.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             Connection conn = connect();
 
             if (conn != null) {
                 try {
                     // Prepare SQL query to find the user
-                    String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+                    String query = "SELECT password FROM users WHERE username = ?";
                     PreparedStatement preparedStatement = conn.prepareStatement(query);
                     preparedStatement.setString(1, username);
-                    preparedStatement.setString(2, password);
 
                     ResultSet resultSet = preparedStatement.executeQuery();
 
                     if (resultSet.next()) {
-                        // User exists and credentials are correct
-                        JOptionPane.showMessageDialog(null, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                        // TODO: Redirect to the next screen or perform another action
+                        String storedHash = resultSet.getString("password");
+
+                        if (BCrypt.checkpw(password, storedHash)) {
+                            JOptionPane.showMessageDialog(null, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                            // TODO: Redirect to the next screen or perform another action
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Invalid username or password!", "Login Failed", JOptionPane.ERROR_MESSAGE);
+                        }
                     } else {
-                        // User does not exist or credentials are incorrect
                         JOptionPane.showMessageDialog(null, "Invalid username or password!", "Login Failed", JOptionPane.ERROR_MESSAGE);
                     }
                     
@@ -87,15 +97,23 @@ public class LoginScreen extends JFrame {
             String username = userText.getText();
             String password = new String(passText.getPassword());
 
+            if (username.isEmpty() || password.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Please enter both username and password.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             Connection conn = connect();
 
             if (conn != null) {
                 try {
+                    // Hash the password before storing it
+                    String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
                     // Prepare SQL query to insert a new user
                     String query = "INSERT INTO users (username, password) VALUES (?, ?)";
                     PreparedStatement preparedStatement = conn.prepareStatement(query);
                     preparedStatement.setString(1, username);
-                    preparedStatement.setString(2, password);
+                    preparedStatement.setString(2, hashedPassword);
 
                     int rowsInserted = preparedStatement.executeUpdate();
                     if (rowsInserted > 0) {
@@ -108,7 +126,11 @@ public class LoginScreen extends JFrame {
                     preparedStatement.close();
 
                 } catch (SQLException ex) {
-                    ex.printStackTrace();
+                    if (ex.getSQLState().equals("23000")) { // Duplicate entry error code
+                        JOptionPane.showMessageDialog(null, "Username already exists. Please choose another username.", "Error", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        ex.printStackTrace();
+                    }
                 } finally {
                     try {
                         conn.close(); // Close the connection after use
