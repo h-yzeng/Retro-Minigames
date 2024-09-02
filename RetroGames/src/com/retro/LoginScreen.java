@@ -4,7 +4,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -51,10 +50,9 @@ public class LoginScreen extends JFrame {
                 return;
             }
 
-            Connection conn = connect();
-
-            if (conn != null) {
-                try {
+            // Use DatabaseManager to connect to the database
+            try (Connection conn = DatabaseManager.connect()) {
+                if (conn != null) {
                     // Prepare SQL query to find the user
                     String query = "SELECT password FROM users WHERE username = ?";
                     PreparedStatement preparedStatement = conn.prepareStatement(query);
@@ -74,22 +72,17 @@ public class LoginScreen extends JFrame {
                     } else {
                         JOptionPane.showMessageDialog(null, "Invalid username or password!", "Login Failed", JOptionPane.ERROR_MESSAGE);
                     }
-                    
+
                     // Close the ResultSet and PreparedStatement
                     resultSet.close();
                     preparedStatement.close();
 
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                } finally {
-                    try {
-                        conn.close(); // Close the connection after use
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
+                } else {
+                    System.out.println("Failed to connect to the database.");
                 }
-            } else {
-                System.out.println("Failed to connect to the database.");
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Failed to connect to the database: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -102,10 +95,9 @@ public class LoginScreen extends JFrame {
                 return;
             }
 
-            Connection conn = connect();
-
-            if (conn != null) {
-                try {
+            // Use DatabaseManager to connect to the database
+            try (Connection conn = DatabaseManager.connect()) {
+                if (conn != null) {
                     // Hash the password before storing it
                     String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
 
@@ -125,21 +117,16 @@ public class LoginScreen extends JFrame {
                     // Close the PreparedStatement
                     preparedStatement.close();
 
-                } catch (SQLException ex) {
-                    if (ex.getSQLState().equals("23000")) { // Duplicate entry error code
-                        JOptionPane.showMessageDialog(null, "Username already exists. Please choose another username.", "Error", JOptionPane.ERROR_MESSAGE);
-                    } else {
-                        ex.printStackTrace();
-                    }
-                } finally {
-                    try {
-                        conn.close(); // Close the connection after use
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
+                } else {
+                    System.out.println("Failed to connect to the database.");
                 }
-            } else {
-                System.out.println("Failed to connect to the database.");
+            } catch (SQLException ex) {
+                if (ex.getSQLState().equals("23000")) { // Duplicate entry error code
+                    JOptionPane.showMessageDialog(null, "Username already exists. Please choose another username.", "Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Failed to connect to the database: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
 
@@ -150,26 +137,5 @@ public class LoginScreen extends JFrame {
             LoginScreen login = new LoginScreen();
             login.setVisible(true);
         });
-    }
-
-    // Method to establish a connection to the database
-    private Connection connect() {
-        String url = "jdbc:mysql://localhost:3306/retro_games_db";
-        String user = "root"; // Replace with your MySQL username
-        String password = "Hchen43859hY!"; // Replace with your MySQL password
-
-        try {
-            System.out.println("Attempting to connect to the database..."); // Debug message
-            // Establish a connection to the database
-            Connection conn = DriverManager.getConnection(url, user, password);
-            System.out.println("Database connected successfully!"); // Success message
-            return conn;
-        } catch (SQLException e) {
-            // Print stack trace in case of an SQL exception
-            e.printStackTrace();
-            // Show a dialog box in case of an error
-            JOptionPane.showMessageDialog(null, "Failed to connect to the database: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            return null;
-        }
     }
 }
