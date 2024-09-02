@@ -30,9 +30,27 @@ public class LoginScreen extends JFrame {
         panel.add(passText);
         panel.add(loginButton);
         panel.add(registerButton);
+        
         add(panel);
         
+     // Action listeners for buttons
+        loginButton.addActionListener(e -> {
+            String username = userText.getText();
+            String password = new String(passText.getPassword());
+            // TODO: Handle login logic
+            System.out.println("Login clicked: " + username + " " + password);
+        });
+
+        registerButton.addActionListener(e -> {
+            // TODO: Handle register logic
+            System.out.println("Register clicked");
+        });
     }
-    
-    
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            LoginScreen login = new LoginScreen();
+            login.setVisible(true);
+        });
+    }  
 }
