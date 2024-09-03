@@ -10,16 +10,23 @@ import java.sql.SQLException;
 
 import org.mindrot.jbcrypt.BCrypt; // Import BCrypt for hashing passwords
 
+import com.retro.User;
+import com.retro.UserService; // Import User and UserService classes
+
 public class LoginScreen extends JFrame {
+    private UserService userService; // Declare a UserService instance
 
     // Constructor to set up GUI components
     public LoginScreen() {
+        // Initialize UserService
+        userService = new UserService();
+
         // Frame settings
         setTitle("Retro Games Login");
-        setSize(300, 150);
+        setSize(300, 200);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // Center the frame
-        
+
         // Create components
         JLabel userLabel = new JLabel("Username:");
         JTextField userText = new JTextField(20);
@@ -27,19 +34,19 @@ public class LoginScreen extends JFrame {
         JPasswordField passText = new JPasswordField(20);
         JButton loginButton = new JButton("Login");
         JButton registerButton = new JButton("Register");
-        
+
         // Add components to frame
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(3, 2));
+        panel.setLayout(new GridLayout(4, 2));
         panel.add(userLabel);
         panel.add(userText);
         panel.add(passLabel);
         panel.add(passText);
         panel.add(loginButton);
         panel.add(registerButton);
-        
+
         add(panel);
-        
+
         // Action listeners for buttons
         loginButton.addActionListener(e -> {
             String username = userText.getText();
@@ -50,39 +57,17 @@ public class LoginScreen extends JFrame {
                 return;
             }
 
-            // Use DatabaseManager to connect to the database
-            try (Connection conn = DatabaseManager.connect()) {
-                if (conn != null) {
-                    // Prepare SQL query to find the user
-                    String query = "SELECT password FROM users WHERE username = ?";
-                    PreparedStatement preparedStatement = conn.prepareStatement(query);
-                    preparedStatement.setString(1, username);
+            // Create a User object
+            User user = new User(username, password);
 
-                    ResultSet resultSet = preparedStatement.executeQuery();
-
-                    if (resultSet.next()) {
-                        String storedHash = resultSet.getString("password");
-
-                        if (BCrypt.checkpw(password, storedHash)) {
-                            JOptionPane.showMessageDialog(null, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                            // TODO: Redirect to the next screen or perform another action
-                        } else {
-                            JOptionPane.showMessageDialog(null, "Invalid username or password!", "Login Failed", JOptionPane.ERROR_MESSAGE);
-                        }
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Invalid username or password!", "Login Failed", JOptionPane.ERROR_MESSAGE);
-                    }
-
-                    // Close the ResultSet and PreparedStatement
-                    resultSet.close();
-                    preparedStatement.close();
-
-                } else {
-                    System.out.println("Failed to connect to the database.");
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Failed to connect to the database: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            // Authenticate user using UserService
+            if (userService.authenticateUser(user)) {
+                JOptionPane.showMessageDialog(null, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                // Open the DashboardScreen and pass the username
+                new DashboardScreen(username).setVisible(true);
+                this.dispose(); // Close the LoginScreen
+            } else {
+                JOptionPane.showMessageDialog(null, "Invalid username or password!", "Login Failed", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -95,41 +80,16 @@ public class LoginScreen extends JFrame {
                 return;
             }
 
-            // Use DatabaseManager to connect to the database
-            try (Connection conn = DatabaseManager.connect()) {
-                if (conn != null) {
-                    // Hash the password before storing it
-                    String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+            // Create a User object
+            User user = new User(username, password);
 
-                    // Prepare SQL query to insert a new user
-                    String query = "INSERT INTO users (username, password) VALUES (?, ?)";
-                    PreparedStatement preparedStatement = conn.prepareStatement(query);
-                    preparedStatement.setString(1, username);
-                    preparedStatement.setString(2, hashedPassword);
-
-                    int rowsInserted = preparedStatement.executeUpdate();
-                    if (rowsInserted > 0) {
-                        JOptionPane.showMessageDialog(null, "User registered successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Registration failed!", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-
-                    // Close the PreparedStatement
-                    preparedStatement.close();
-
-                } else {
-                    System.out.println("Failed to connect to the database.");
-                }
-            } catch (SQLException ex) {
-                if (ex.getSQLState().equals("23000")) { // Duplicate entry error code
-                    JOptionPane.showMessageDialog(null, "Username already exists. Please choose another username.", "Error", JOptionPane.ERROR_MESSAGE);
-                } else {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(null, "Failed to connect to the database: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
+            // Register user using UserService
+            if (userService.registerUser(user)) {
+                JOptionPane.showMessageDialog(null, "User registered successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null, "Registration failed! Username might already exist.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
-
     }
 
     public static void main(String[] args) {
