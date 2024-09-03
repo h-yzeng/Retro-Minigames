@@ -12,10 +12,10 @@ public class DashboardScreen extends JFrame {
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // Center the frame
-        
+
         // Create components
         JLabel welcomeLabel = new JLabel("Welcome, " + username + "!", SwingConstants.CENTER);
-        JButton playGameButton = new JButton("Play Game");
+        JButton playGameButton = new JButton("Play Tic-Tac-Toe");
         JButton logoutButton = new JButton("Logout");
 
         // Add components to frame
@@ -26,12 +26,10 @@ public class DashboardScreen extends JFrame {
 
         // Action listeners for buttons
         playGameButton.addActionListener(e -> {
-            // TODO: Open game selection screen or start a game
-            JOptionPane.showMessageDialog(this, "Game feature coming soon!");
+            new TicTacToeGame(); // Open Tic-Tac-Toe game
         });
 
         logoutButton.addActionListener(e -> {
-            // Close the current frame and show the login screen again
             this.dispose(); // Close the DashboardScreen
             new LoginScreen().setVisible(true); // Show the LoginScreen again
         });
