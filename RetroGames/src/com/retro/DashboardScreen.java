@@ -15,18 +15,24 @@ public class DashboardScreen extends JFrame {
 
         // Create components
         JLabel welcomeLabel = new JLabel("Welcome, " + username + "!", SwingConstants.CENTER);
-        JButton playGameButton = new JButton("Play Tic-Tac-Toe");
+        JButton playTicTacToeButton = new JButton("Play Tic-Tac-Toe");
+        JButton playSnakeButton = new JButton("Play Snake");
         JButton logoutButton = new JButton("Logout");
 
         // Add components to frame
-        setLayout(new BorderLayout());
-        add(welcomeLabel, BorderLayout.NORTH);
-        add(playGameButton, BorderLayout.CENTER);
-        add(logoutButton, BorderLayout.SOUTH);
+        setLayout(new GridLayout(4, 1));
+        add(welcomeLabel);
+        add(playTicTacToeButton);
+        add(playSnakeButton);
+        add(logoutButton);
 
         // Action listeners for buttons
-        playGameButton.addActionListener(e -> {
+        playTicTacToeButton.addActionListener(e -> {
             new TicTacToeGame(); // Open Tic-Tac-Toe game
+        });
+
+        playSnakeButton.addActionListener(e -> {
+            new SnakeGame(); // Open Snake game
         });
 
         logoutButton.addActionListener(e -> {
