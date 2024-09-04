@@ -3,15 +3,9 @@ package com.retro;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
-import org.mindrot.jbcrypt.BCrypt; // Import BCrypt for hashing passwords
-
-import com.retro.User;
-import com.retro.UserService; // Import User and UserService classes
+import com.retro.User; // Import User class
+import com.retro.UserService; // Import UserService class
 
 public class LoginScreen extends JFrame {
     private UserService userService; // Declare a UserService instance
@@ -63,8 +57,7 @@ public class LoginScreen extends JFrame {
             // Authenticate user using UserService
             if (userService.authenticateUser(user)) {
                 JOptionPane.showMessageDialog(null, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                // Open the DashboardScreen and pass the username
-                new DashboardScreen(username).setVisible(true);
+                new DashboardScreen(username).setVisible(true); // Open the DashboardScreen and pass the username
                 this.dispose(); // Close the LoginScreen
             } else {
                 JOptionPane.showMessageDialog(null, "Invalid username or password!", "Login Failed", JOptionPane.ERROR_MESSAGE);

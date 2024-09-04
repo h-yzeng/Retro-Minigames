@@ -9,7 +9,7 @@ public class DashboardScreen extends JFrame {
     public DashboardScreen(String username) {
         // Frame settings
         setTitle("Welcome " + username);
-        setSize(400, 300);
+        setSize(400, 350);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // Center the frame
 
@@ -17,27 +17,27 @@ public class DashboardScreen extends JFrame {
         JLabel welcomeLabel = new JLabel("Welcome, " + username + "!", SwingConstants.CENTER);
         JButton playTicTacToeButton = new JButton("Play Tic-Tac-Toe");
         JButton playSnakeButton = new JButton("Play Snake");
+        JButton playPongButton = new JButton("Play Pong");
+        JButton profileButton = new JButton("Profile");
         JButton logoutButton = new JButton("Logout");
 
         // Add components to frame
-        setLayout(new GridLayout(4, 1));
+        setLayout(new GridLayout(6, 1));
         add(welcomeLabel);
         add(playTicTacToeButton);
         add(playSnakeButton);
+        add(playPongButton);
+        add(profileButton);
         add(logoutButton);
 
         // Action listeners for buttons
-        playTicTacToeButton.addActionListener(e -> {
-            new TicTacToeGame(); // Open Tic-Tac-Toe game
-        });
-
-        playSnakeButton.addActionListener(e -> {
-            new SnakeGame(); // Open Snake game
-        });
-
+        playTicTacToeButton.addActionListener(e -> new TicTacToeGame());
+        playSnakeButton.addActionListener(e -> new SnakeGame());
+        playPongButton.addActionListener(e -> new PongGame());
+        profileButton.addActionListener(e -> new UserProfileScreen(username));
         logoutButton.addActionListener(e -> {
-            this.dispose(); // Close the DashboardScreen
-            new LoginScreen().setVisible(true); // Show the LoginScreen again
+            this.dispose();
+            new LoginScreen().setVisible(true);
         });
     }
 }
