@@ -3,7 +3,11 @@ package com.retro;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.*;
 
+/**
+ * PongGame class represents the Pong game UI and logic.
+ */
 public class PongGame extends JFrame {
 
     private static final int WIDTH = 800;
@@ -12,14 +16,31 @@ public class PongGame extends JFrame {
     private static final int PADDLE_HEIGHT = 100;
     private static final int BALL_SIZE = 20;
     private static final int PADDLE_SPEED = 20;
-    private static final int PADDLE_EDGE_OFFSET = 10; // Adjust this value to change the spacing from the edge
+    private static final int BALL_SPEED = 5;
+    private static final int PADDLE_EDGE_OFFSET = 10;
+    private static final int SCORE_LIMIT = 10; // Winning score limit
 
     private Timer gameTimer;
     private Paddle player1Paddle, player2Paddle;
     private Ball ball;
     private int player1Score, player2Score;
+    private boolean isGameRunning = false; // Track if the game is running
+    private String username;
+    private int userId;
 
-    public PongGame() {
+    /**
+     * Constructs a new PongGame window and initializes the game components.
+     */
+    public PongGame(String username) {
+        if (!UserService.isUserLoggedIn()) {
+            JOptionPane.showMessageDialog(null, "Access denied! You must be logged in to play.", "Access Denied", JOptionPane.WARNING_MESSAGE);
+            this.dispose();
+            return;
+        }
+
+        this.username = username;
+        this.userId = fetchUserIdByUsername(username); // Fetch the user ID from the database
+
         setTitle("Pong Game");
         setSize(WIDTH, HEIGHT);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -29,46 +50,100 @@ public class PongGame extends JFrame {
         GamePanel gamePanel = new GamePanel();
         add(gamePanel);
 
-        // Initialize paddles and ball with their starting positions
+        initializeGameComponents();
+
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                handleKeyPress(e);
+            }
+        });
+
+        // Game timer to update game state
+        gameTimer = new Timer(16, e -> updateGameState(gamePanel)); // Approx. 60 FPS
+        gameTimer.start();
+
+        setFocusable(true);
+        setVisible(true);
+        isGameRunning = true; // Game is now running
+    }
+
+    /**
+     * Fetches the user ID from the database based on the username.
+     *
+     * @param username The username to search for.
+     * @return The user ID if found; -1 otherwise.
+     */
+    private int fetchUserIdByUsername(String username) {
+        int userId = -1;
+        try (Connection conn = DatabaseManager.connect()) {
+            if (conn != null) {
+                String query = "SELECT id FROM users WHERE username = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                    stmt.setString(1, username);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            userId = rs.getInt("id");
+                        }
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return userId;
+    }
+
+    /**
+     * Initializes game components like paddles and the ball.
+     */
+    private void initializeGameComponents() {
         player1Paddle = new Paddle(PADDLE_EDGE_OFFSET, HEIGHT / 2 - PADDLE_HEIGHT / 2); // Left Paddle
         player2Paddle = new Paddle(WIDTH - PADDLE_EDGE_OFFSET - PADDLE_WIDTH, HEIGHT / 2 - PADDLE_HEIGHT / 2); // Right Paddle
         ball = new Ball(WIDTH / 2 - BALL_SIZE / 2, HEIGHT / 2 - BALL_SIZE / 2);
 
         player1Score = 0;
         player2Score = 0;
-
-        addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                switch (e.getKeyCode()) {
-                    case KeyEvent.VK_W:
-                        if (player1Paddle.getY() > 0) player1Paddle.moveUp();
-                        break;
-                    case KeyEvent.VK_S:
-                        if (player1Paddle.getY() < HEIGHT - PADDLE_HEIGHT) player1Paddle.moveDown();
-                        break;
-                    case KeyEvent.VK_UP:
-                        if (player2Paddle.getY() > 0) player2Paddle.moveUp();
-                        break;
-                    case KeyEvent.VK_DOWN:
-                        if (player2Paddle.getY() < HEIGHT - PADDLE_HEIGHT) player2Paddle.moveDown();
-                        break;
-                }
-            }
-        });
-
-        // Game timer to update game state
-        gameTimer = new Timer(10, e -> {
-            ball.move();
-            checkCollision();
-            gamePanel.repaint();
-        });
-        gameTimer.start();
-
-        setFocusable(true);
-        setVisible(true);
     }
 
+    /**
+     * Handles key press events for controlling the paddles.
+     *
+     * @param e the KeyEvent triggered by user input
+     */
+    private void handleKeyPress(KeyEvent e) {
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_W:
+                if (player1Paddle.getY() > 0) player1Paddle.moveUp();
+                break;
+            case KeyEvent.VK_S:
+                if (player1Paddle.getY() < HEIGHT - PADDLE_HEIGHT) player1Paddle.moveDown();
+                break;
+            case KeyEvent.VK_UP:
+                if (player2Paddle.getY() > 0) player2Paddle.moveUp();
+                break;
+            case KeyEvent.VK_DOWN:
+                if (player2Paddle.getY() < HEIGHT - PADDLE_HEIGHT) player2Paddle.moveDown();
+                break;
+        }
+    }
+
+    /**
+     * Updates the game state including ball movement and collision checks.
+     *
+     * @param gamePanel the GamePanel object where the game is drawn
+     */
+    private void updateGameState(GamePanel gamePanel) {
+        if (!isGameRunning) return;
+
+        ball.move();
+        checkCollision();
+        gamePanel.repaint();
+    }
+
+    /**
+     * Checks for collisions with paddles, walls, and scoring conditions.
+     */
     private void checkCollision() {
         // Ball collision with top and bottom borders
         if (ball.getY() <= 0 || ball.getY() >= HEIGHT - BALL_SIZE) {
@@ -76,34 +151,73 @@ public class PongGame extends JFrame {
         }
 
         // Ball collision with left paddle
-        if (ball.getX() <= player1Paddle.getX() + PADDLE_WIDTH &&
-            ball.getY() + BALL_SIZE >= player1Paddle.getY() &&
-            ball.getY() <= player1Paddle.getY() + PADDLE_HEIGHT) {
+        if (ball.intersects(player1Paddle)) {
             ball.reverseXDirection();
         }
 
         // Ball collision with right paddle
-        if (ball.getX() + BALL_SIZE >= player2Paddle.getX() &&
-            ball.getY() + BALL_SIZE >= player2Paddle.getY() &&
-            ball.getY() <= player2Paddle.getY() + PADDLE_HEIGHT) {
+        if (ball.intersects(player2Paddle)) {
             ball.reverseXDirection();
         }
 
         // Check if the ball goes out of bounds (scoring)
         if (ball.getX() <= 0) {
             player2Score++;
-            resetBall();
+            resetBallDirectionTowardsPlayer(2); // Ball moves towards player 2
         } else if (ball.getX() >= WIDTH - BALL_SIZE) {
             player1Score++;
-            resetBall();
+            resetBallDirectionTowardsPlayer(1); // Ball moves towards player 1
+        }
+
+        // Check if a player has reached the score limit
+        if (player1Score >= SCORE_LIMIT) {
+            endGame("Player 1 Wins!");
+        } else if (player2Score >= SCORE_LIMIT) {
+            endGame("Player 2 Wins!");
         }
     }
 
-    private void resetBall() {
-        ball.setPosition(WIDTH / 2 - BALL_SIZE / 2, HEIGHT / 2 - BALL_SIZE / 2);
-        ball.setDirection(-2, 2);
+    /**
+     * Ends the game and shows a message.
+     *
+     * @param winnerMessage the message to show indicating the winner
+     */
+    private void endGame(String winnerMessage) {
+        isGameRunning = false;
+        gameTimer.stop();
+        JOptionPane.showMessageDialog(this, winnerMessage, "Game Over", JOptionPane.INFORMATION_MESSAGE);
+        updateStatistics(winnerMessage.contains("Player 1") ? true : false);
+        dispose(); // Close the game window
     }
 
+    /**
+     * Resets the ball to the starting position after scoring, moving towards the specified player.
+     *
+     * @param player the player number (1 or 2) towards whom the ball should move
+     */
+    private void resetBallDirectionTowardsPlayer(int player) {
+        ball.setPosition(WIDTH / 2 - BALL_SIZE / 2, HEIGHT / 2 - BALL_SIZE / 2);
+        int xDir = BALL_SPEED * (player == 1 ? 1 : -1);
+        int yDir = BALL_SPEED * (Math.random() < 0.5 ? 1 : -1);
+        ball.setDirection(xDir, yDir);
+    }
+
+    /**
+     * Updates user statistics in the database.
+     *
+     * @param player1Win true if Player 1 won, false otherwise
+     */
+    private void updateStatistics(boolean player1Win) {
+        if (userId != -1) {
+            DatabaseManager.updateUserStatistics(userId, "Pong", player1Win, 0);
+        } else {
+            JOptionPane.showMessageDialog(null, "Error updating statistics. User not found.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * GamePanel class represents the panel where the game is drawn.
+     */
     private class GamePanel extends JPanel {
 
         public GamePanel() {
@@ -118,8 +232,8 @@ public class PongGame extends JFrame {
         }
 
         private void drawGame(Graphics g) {
-            int panelWidth = getWidth(); // Use actual drawable width
-            int panelHeight = getHeight(); // Use actual drawable height
+            int panelWidth = getWidth();
+            int panelHeight = getHeight();
 
             // Draw paddles
             g.setColor(Color.WHITE);
@@ -152,16 +266,19 @@ public class PongGame extends JFrame {
 
         private void drawMiddleLine(Graphics g) {
             g.setColor(Color.WHITE);
-            int panelWidth = getWidth(); // Ensure the width is from the panel, not the JFrame
-            int panelHeight = getHeight(); // Ensure the height is from the panel, not the JFrame
+            int panelWidth = getWidth();
+            int panelHeight = getHeight();
 
             // Draw a dashed line in the center
             for (int y = 0; y < panelHeight; y += 20) {
-                g.fillRect(panelWidth / 2 - 1, y, 2, 10); // Adjust to draw in the correct panel center
+                g.fillRect(panelWidth / 2 - 1, y, 2, 10);
             }
         }
     }
 
+    /**
+     * Paddle class represents a paddle in the Pong game.
+     */
     private class Paddle {
         private int x, y;
 
@@ -171,11 +288,11 @@ public class PongGame extends JFrame {
         }
 
         public void moveUp() {
-            y -= PADDLE_SPEED;
+            if (y - PADDLE_SPEED >= 0) y -= PADDLE_SPEED;
         }
 
         public void moveDown() {
-            y += PADDLE_SPEED;
+            if (y + PADDLE_SPEED <= HEIGHT - PADDLE_HEIGHT) y += PADDLE_SPEED;
         }
 
         public int getX() {
@@ -185,16 +302,22 @@ public class PongGame extends JFrame {
         public int getY() {
             return y;
         }
+
+        public Rectangle getBounds() {
+            return new Rectangle(x, y, PADDLE_WIDTH, PADDLE_HEIGHT);
+        }
     }
 
+    /**
+     * Ball class represents the ball in the Pong game.
+     */
     private class Ball {
         private int x, y, xDir, yDir;
 
         public Ball(int x, int y) {
             this.x = x;
             this.y = y;
-            this.xDir = -2;
-            this.yDir = 2;
+            setDirection(BALL_SPEED, BALL_SPEED);
         }
 
         public void move() {
@@ -227,9 +350,18 @@ public class PongGame extends JFrame {
         public int getY() {
             return y;
         }
+
+        public Rectangle getBounds() {
+            return new Rectangle(x, y, BALL_SIZE, BALL_SIZE);
+        }
+
+        public boolean intersects(Paddle paddle) {
+            return getBounds().intersects(paddle.getBounds());
+        }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(PongGame::new);
-    }
+    // Removed main method to prevent standalone execution
+    // public static void main(String[] args) {
+    //     SwingUtilities.invokeLater(PongGame::new);
+    // }
 }

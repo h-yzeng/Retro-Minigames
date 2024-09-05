@@ -2,12 +2,17 @@ package com.retro;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 
+/**
+ * DashboardScreen class represents the main dashboard after a user logs in.
+ */
 public class DashboardScreen extends JFrame {
 
+    private String username; // Store the username for reuse
+
     public DashboardScreen(String username) {
-        // Frame settings
+        this.username = username; // Initialize username
+
         setTitle("Welcome " + username);
         setSize(400, 350);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -31,13 +36,56 @@ public class DashboardScreen extends JFrame {
         add(logoutButton);
 
         // Action listeners for buttons
-        playTicTacToeButton.addActionListener(e -> new TicTacToeGame());
-        playSnakeButton.addActionListener(e -> new SnakeGame());
-        playPongButton.addActionListener(e -> new PongGame());
-        profileButton.addActionListener(e -> new UserProfileScreen(username));
-        logoutButton.addActionListener(e -> {
-            this.dispose();
-            new LoginScreen().setVisible(true);
+        playTicTacToeButton.addActionListener(e -> {
+            if (UserService.isUserLoggedIn()) {
+                new TicTacToeGame(username); // Pass username to constructor
+            } else {
+                showLoginError();
+            }
         });
+
+        playSnakeButton.addActionListener(e -> {
+            if (UserService.isUserLoggedIn()) {
+                new SnakeGame(username); // Pass username to constructor
+            } else {
+                showLoginError();
+            }
+        });
+
+        playPongButton.addActionListener(e -> {
+            if (UserService.isUserLoggedIn()) {
+                new PongGame(username); // Pass username to constructor
+            } else {
+                showLoginError();
+            }
+        });
+
+        profileButton.addActionListener(e -> {
+            if (UserService.isUserLoggedIn()) {
+                new UserProfileScreen(username); // Open UserProfileScreen with the username
+            } else {
+                showLoginError();
+            }
+        });
+
+        logoutButton.addActionListener(e -> handleLogout());
+
+        setVisible(true);
+    }
+
+    /**
+     * Shows an error message if the user is not logged in.
+     */
+    private void showLoginError() {
+        JOptionPane.showMessageDialog(this, "You must be logged in to access this feature.", "Access Denied", JOptionPane.WARNING_MESSAGE);
+    }
+
+    /**
+     * Handles the logout action.
+     */
+    private void handleLogout() {
+        UserService.logoutUser();
+        this.dispose();
+        new LoginScreen().setVisible(true);
     }
 }

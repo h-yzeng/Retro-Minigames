@@ -6,24 +6,35 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.mindrot.jbcrypt.BCrypt;
 
+/**
+ * UserService class handles user registration and authentication logic.
+ */
 public class UserService {
+    private static User loggedInUser = null; // Static variable to store the logged-in user
 
-    // Method to register a new user
-    public boolean registerUser(User user) {
-        try (Connection conn = DatabaseManager.connect()) {
-            String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
+    /**
+     * Registers a new user in the database.
+     *
+     * @param user the User object containing the username and plain text password
+     * @param plainPassword the plain text password to hash and store
+     * @return true if the user is registered successfully; false otherwise
+     */
+    public boolean registerUser(User user, String plainPassword) {
+        try (Connection conn = DatabaseManager.connect();
+             PreparedStatement preparedStatement = conn.prepareStatement(
+                     "INSERT INTO users (username, password) VALUES (?, ?)")) {
 
-            String query = "INSERT INTO users (username, password) VALUES (?, ?)";
-            PreparedStatement preparedStatement = conn.prepareStatement(query);
+            // Hash the password before storing
+            String hashedPassword = BCrypt.hashpw(plainPassword, BCrypt.gensalt());
+
             preparedStatement.setString(1, user.getUsername());
             preparedStatement.setString(2, hashedPassword);
 
             int rowsInserted = preparedStatement.executeUpdate();
-            preparedStatement.close();
-
             return rowsInserted > 0;
+
         } catch (SQLException ex) {
-            if (ex.getSQLState().equals("23000")) {
+            if ("23000".equals(ex.getSQLState())) { // SQLState for unique constraint violation
                 System.out.println("Username already exists. Please choose another username.");
             } else {
                 ex.printStackTrace();
@@ -32,29 +43,60 @@ public class UserService {
         }
     }
 
-    // Method to authenticate a user
-    public boolean authenticateUser(User user) {
-        try (Connection conn = DatabaseManager.connect()) {
-            String query = "SELECT password FROM users WHERE username = ?";
-            PreparedStatement preparedStatement = conn.prepareStatement(query);
+    /**
+     * Authenticates a user by checking the stored hash with the provided password.
+     *
+     * @param user the User object containing the username
+     * @param plainPassword the plain text password to check
+     * @return true if the user is authenticated successfully; false otherwise
+     */
+    public boolean authenticateUser(User user, String plainPassword) {
+        try (Connection conn = DatabaseManager.connect();
+             PreparedStatement preparedStatement = conn.prepareStatement(
+                     "SELECT password FROM users WHERE username = ?")) {
+
             preparedStatement.setString(1, user.getUsername());
 
-            ResultSet resultSet = preparedStatement.executeQuery();
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    String storedHash = resultSet.getString("password");
 
-            if (resultSet.next()) {
-                String storedHash = resultSet.getString("password");
-                resultSet.close();
-                preparedStatement.close();
-
-                return BCrypt.checkpw(user.getPassword(), storedHash);
+                    // Validate the plain password against the stored hash
+                    if (BCrypt.checkpw(plainPassword, storedHash)) {
+                        loggedInUser = user; // Store the logged-in user
+                        return true;
+                    }
+                }
             }
-
-            resultSet.close();
-            preparedStatement.close();
 
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * Logs out the current user.
+     */
+    public static void logoutUser() {
+        loggedInUser = null; // Clear the logged-in user
+    }
+
+    /**
+     * Checks if a user is currently logged in.
+     *
+     * @return true if a user is logged in; false otherwise
+     */
+    public static boolean isUserLoggedIn() {
+        return loggedInUser != null;
+    }
+
+    /**
+     * Gets the currently logged-in user.
+     *
+     * @return the currently logged-in User object, or null if no user is logged in
+     */
+    public static User getLoggedInUser() {
+        return loggedInUser;
     }
 }

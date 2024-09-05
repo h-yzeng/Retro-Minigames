@@ -1,8 +1,11 @@
 package com.retro;
 
+/**
+ * User class represents a user in the system.
+ */
 public class User {
     private String username;
-    private String password;
+    private String password; // We store the password securely hashed
 
     public User(String username, String password) {
         this.username = username;
@@ -17,10 +20,7 @@ public class User {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
+    // Removed getPassword method for security reasons
     public void setPassword(String password) {
         this.password = password;
     }

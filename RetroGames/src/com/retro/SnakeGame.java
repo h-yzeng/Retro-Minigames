@@ -3,7 +3,11 @@ package com.retro;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.*;
 
+/**
+ * SnakeGame class represents the Snake game UI and logic.
+ */
 public class SnakeGame extends JFrame {
 
     private static final int WINDOW_WIDTH = 300;
@@ -21,8 +25,22 @@ public class SnakeGame extends JFrame {
     private char direction = 'R'; // Snake starts moving to the right
     private boolean running = false;
     private Timer timer;
+    private String username;
+    private int userId;
 
-    public SnakeGame() {
+    /**
+     * Constructs a new SnakeGame window.
+     */
+    public SnakeGame(String username) {
+        if (!UserService.isUserLoggedIn()) {
+            JOptionPane.showMessageDialog(null, "Access denied! You must be logged in to play.", "Access Denied", JOptionPane.WARNING_MESSAGE);
+            this.dispose();
+            return;
+        }
+
+        this.username = username;
+        this.userId = fetchUserIdByUsername(username); // Correctly fetch user ID from database
+
         setTitle("Snake Game");
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -31,6 +49,26 @@ public class SnakeGame extends JFrame {
 
         initGamePanel();
         startGame();
+    }
+
+    private int fetchUserIdByUsername(String username) {
+        int userId = -1;
+        try (Connection conn = DatabaseManager.connect()) {
+            if (conn != null) {
+                String query = "SELECT id FROM users WHERE username = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                    stmt.setString(1, username);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            userId = rs.getInt("id");
+                        }
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return userId;
     }
 
     private void initGamePanel() {
@@ -103,38 +141,51 @@ public class SnakeGame extends JFrame {
     }
 
     private void checkCollisions() {
-        // Check if head collides with body
         for (int i = bodyParts; i > 0; i--) {
             if ((x[0] == x[i]) && (y[0] == y[i])) {
                 running = false;
             }
         }
 
-        // Check if head touches the borders
         if (x[0] < 0 || x[0] >= WINDOW_WIDTH || y[0] < 0 || y[0] >= WINDOW_HEIGHT) {
             running = false;
         }
 
         if (!running) {
             timer.stop();
+            gameOver();
         }
     }
 
     private void draw(Graphics g) {
         if (running) {
             g.setColor(Color.RED);
-            g.fillOval(appleX, appleY, UNIT_SIZE, UNIT_SIZE); // Draw apple
+            g.fillOval(appleX, appleY, UNIT_SIZE, UNIT_SIZE);
 
             for (int i = 0; i < bodyParts; i++) {
                 if (i == 0) {
-                    g.setColor(Color.GREEN); // Snake head
+                    g.setColor(Color.GREEN);
                 } else {
-                    g.setColor(new Color(45, 180, 0)); // Snake body
+                    g.setColor(new Color(45, 180, 0));
                 }
                 g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
             }
         } else {
             gameOver(g);
+        }
+    }
+
+    private void gameOver() {
+        int highScore = applesEaten;
+        JOptionPane.showMessageDialog(this, "Game Over. Your score: " + highScore, "Game Over", JOptionPane.INFORMATION_MESSAGE);
+        updateStatistics(highScore);
+    }
+
+    private void updateStatistics(int highScore) {
+        if (userId != -1) {
+            DatabaseManager.updateUserStatistics(userId, "Snake", false, highScore);
+        } else {
+            JOptionPane.showMessageDialog(null, "Error updating statistics. User not found.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
