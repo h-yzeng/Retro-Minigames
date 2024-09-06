@@ -21,6 +21,10 @@ This project is a collection of retro-styled games built using **Java**. The pro
 - **Git** for version control
 - **MySQL** or any other relational database for data storage
 
+## Libraries Used
+- **jbcrypt**: For secure password hashing.
+- **mysql-connector**: To connect the project to MySQL.
+
 ### Setting Up the Project
 
 1. **Clone the Repository**:
@@ -70,3 +74,11 @@ This project is a collection of retro-styled games built using **Java**. The pro
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/h-yzeng/Retro-Minigames/blob/master/LICENSE) file for details.
+
+## Future Improvements
+- Add more games like Minesweeper or Chess.
+- Improve the leaderboard feature with more detailed stats.
+- Add sound effects to the games for a better user experience.
+
+![GitHub last commit](https://img.shields.io/github/last-commit/h-yzeng/retro-games)
+![GitHub license](https://img.shields.io/github/license/h-yzeng/retro-games)
