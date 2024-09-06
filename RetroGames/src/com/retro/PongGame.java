@@ -70,8 +70,6 @@ public class PongGame extends JFrame {
 
     /**
      * Fetches the user ID from the database based on the username.
-     *
-     * @param username The username to search for.
      * @return The user ID if found; -1 otherwise.
      */
     private int fetchUserIdByUsername(String username) {
@@ -108,8 +106,6 @@ public class PongGame extends JFrame {
 
     /**
      * Handles key press events for controlling the paddles.
-     *
-     * @param e the KeyEvent triggered by user input
      */
     private void handleKeyPress(KeyEvent e) {
         switch (e.getKeyCode()) {
@@ -130,8 +126,6 @@ public class PongGame extends JFrame {
 
     /**
      * Updates the game state including ball movement and collision checks.
-     *
-     * @param gamePanel the GamePanel object where the game is drawn
      */
     private void updateGameState(GamePanel gamePanel) {
         if (!isGameRunning) return;
@@ -179,7 +173,6 @@ public class PongGame extends JFrame {
 
     /**
      * Ends the game and shows a message.
-     *
      * @param winnerMessage the message to show indicating the winner
      */
     private void endGame(String winnerMessage) {
@@ -192,7 +185,6 @@ public class PongGame extends JFrame {
 
     /**
      * Resets the ball to the starting position after scoring, moving towards the specified player.
-     *
      * @param player the player number (1 or 2) towards whom the ball should move
      */
     private void resetBallDirectionTowardsPlayer(int player) {
@@ -204,7 +196,6 @@ public class PongGame extends JFrame {
 
     /**
      * Updates user statistics in the database.
-     *
      * @param player1Win true if Player 1 won, false otherwise
      */
     private void updateStatistics(boolean player1Win) {
@@ -359,9 +350,4 @@ public class PongGame extends JFrame {
             return getBounds().intersects(paddle.getBounds());
         }
     }
-
-    // Removed main method to prevent standalone execution
-    // public static void main(String[] args) {
-    //     SwingUtilities.invokeLater(PongGame::new);
-    // }
 }

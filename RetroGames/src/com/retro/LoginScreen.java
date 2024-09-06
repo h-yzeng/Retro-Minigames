@@ -18,9 +18,10 @@ public class LoginScreen extends JFrame {
 
         // Frame settings
         setTitle("Retro Games Login");
-        setSize(300, 200);
+        setSize(350, 250);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // Center the frame
+        setResizable(false); // Disable resizing to maintain layout
 
         // Create and set up GUI components
         initializeComponents();
@@ -30,22 +31,63 @@ public class LoginScreen extends JFrame {
      * Initializes GUI components and sets up layout and event listeners.
      */
     private void initializeComponents() {
-        // Create components
+        // Set up main panel with padding and grid bag layout
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL; // This will make components fill the horizontal space
+        gbc.insets = new Insets(5, 5, 5, 5); // Padding around components
+
+        // Create components with enhanced styles
         JLabel userLabel = new JLabel("Username:");
+        userLabel.setFont(new Font("Arial", Font.BOLD, 14));
         JTextField userText = new JTextField(20);
+        userText.setFont(new Font("Arial", Font.PLAIN, 14));
+
         JLabel passLabel = new JLabel("Password:");
+        passLabel.setFont(new Font("Arial", Font.BOLD, 14));
         JPasswordField passText = new JPasswordField(20);
+        passText.setFont(new Font("Arial", Font.PLAIN, 14));
+
         JButton loginButton = new JButton("Login");
         JButton registerButton = new JButton("Register");
 
-        // Set up layout manager and add components to panel
-        JPanel panel = new JPanel(new GridLayout(4, 2));
-        panel.add(userLabel);
-        panel.add(userText);
-        panel.add(passLabel);
-        panel.add(passText);
-        panel.add(loginButton);
-        panel.add(registerButton);
+        // Style buttons
+        loginButton.setFont(new Font("Arial", Font.BOLD, 14));
+        registerButton.setFont(new Font("Arial", Font.BOLD, 14));
+        loginButton.setBackground(new Color(70, 130, 180)); // Steel Blue
+        loginButton.setForeground(Color.WHITE);
+        registerButton.setBackground(new Color(34, 139, 34)); // Forest Green
+        registerButton.setForeground(Color.WHITE);
+
+        // Add components to the panel with GridBagConstraints
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0; // No horizontal weight for labels
+        panel.add(userLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 1.0; // Allow text fields to grow horizontally
+        panel.add(userText, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0; // No horizontal weight for labels
+        panel.add(passLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 1.0; // Allow text fields to grow horizontally
+        panel.add(passText, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.weightx = 0; // No horizontal weight for buttons
+        panel.add(loginButton, gbc);
+
+        gbc.gridy = 3;
+        panel.add(registerButton, gbc);
+
         add(panel);
 
         // Attach event listeners to buttons
@@ -53,25 +95,21 @@ public class LoginScreen extends JFrame {
         registerButton.addActionListener(e -> handleRegister(userText, passText));
     }
 
+
     /**
      * Handles the login action when the login button is clicked.
-     *
-     * @param userText JTextField for username input
-     * @param passText JPasswordField for password input
      */
     private void handleLogin(JTextField userText, JPasswordField passText) {
         String username = userText.getText();
-        String password = new String(passText.getPassword());
+        String plainPassword = new String(passText.getPassword());
 
-        if (!validateInput(username, password)) {
+        if (!validateInput(username, plainPassword)) {
             return;
         }
 
-        // Create a User object with the username
-        User user = new User(username, null); // Password not needed in the User object for authentication
-
-        // Authenticate user using UserService with plain password
-        if (userService.authenticateUser(user, password)) {
+        // Authenticate user using UserService
+        User user = new User(username, null); // Password is not stored in the user object
+        if (userService.authenticateUser(user, plainPassword)) {
             JOptionPane.showMessageDialog(this, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
             new DashboardScreen(username).setVisible(true); // Open the DashboardScreen
             this.dispose(); // Close the LoginScreen
@@ -80,25 +118,20 @@ public class LoginScreen extends JFrame {
         }
     }
 
-    /**
+    /*
      * Handles the registration action when the register button is clicked.
-     *
-     * @param userText JTextField for username input
-     * @param passText JPasswordField for password input
      */
     private void handleRegister(JTextField userText, JPasswordField passText) {
         String username = userText.getText();
-        String password = new String(passText.getPassword());
+        String plainPassword = new String(passText.getPassword());
 
-        if (!validateInput(username, password)) {
+        if (!validateInput(username, plainPassword)) {
             return;
         }
 
-        // Create a User object
-        User user = new User(username, null);
-
         // Register user using UserService
-        if (userService.registerUser(user, password)) {
+        User user = new User(username, null); // Password is not stored in the user object
+        if (userService.registerUser(user, plainPassword)) {
             JOptionPane.showMessageDialog(this, "User registered successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this, "Registration failed! Username might already exist.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -107,9 +140,6 @@ public class LoginScreen extends JFrame {
 
     /**
      * Validates user input for both username and password.
-     *
-     * @param username the entered username
-     * @param password the entered password
      * @return true if both username and password are non-empty; false otherwise
      */
     private boolean validateInput(String username, String password) {

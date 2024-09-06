@@ -42,8 +42,6 @@ public class TicTacToeGame extends JFrame {
 
     /**
      * Fetches the user ID from the database based on the username.
-     *
-     * @param username The username to search for.
      * @return The user ID if found; -1 otherwise.
      */
     private int fetchUserIdByUsername(String username) {

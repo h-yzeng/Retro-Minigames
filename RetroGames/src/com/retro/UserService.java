@@ -14,9 +14,6 @@ public class UserService {
 
     /**
      * Registers a new user in the database.
-     *
-     * @param user the User object containing the username and plain text password
-     * @param plainPassword the plain text password to hash and store
      * @return true if the user is registered successfully; false otherwise
      */
     public boolean registerUser(User user, String plainPassword) {
@@ -45,9 +42,6 @@ public class UserService {
 
     /**
      * Authenticates a user by checking the stored hash with the provided password.
-     *
-     * @param user the User object containing the username
-     * @param plainPassword the plain text password to check
      * @return true if the user is authenticated successfully; false otherwise
      */
     public boolean authenticateUser(User user, String plainPassword) {
@@ -84,7 +78,6 @@ public class UserService {
 
     /**
      * Checks if a user is currently logged in.
-     *
      * @return true if a user is logged in; false otherwise
      */
     public static boolean isUserLoggedIn() {
@@ -93,7 +86,6 @@ public class UserService {
 
     /**
      * Gets the currently logged-in user.
-     *
      * @return the currently logged-in User object, or null if no user is logged in
      */
     public static User getLoggedInUser() {

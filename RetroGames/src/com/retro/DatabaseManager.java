@@ -14,7 +14,6 @@ public class DatabaseManager {
 
     /**
      * Establishes a connection to the database.
-     *
      * @return Connection object if successful, null otherwise
      */
     public static Connection connect() {
@@ -31,11 +30,7 @@ public class DatabaseManager {
 
     /**
      * Updates user statistics after a game.
-     *
-     * @param userId the ID of the user
-     * @param gameName the name of the game played
      * @param isWin true if the game was won, false otherwise
-     * @param highScore the high score to update, if applicable
      */
     public static void updateUserStatistics(int userId, String gameName, boolean isWin, int highScore) {
         try (Connection conn = connect()) {
@@ -86,8 +81,6 @@ public class DatabaseManager {
 
     /**
      * Retrieves the leaderboard for a specified game.
-     *
-     * @param gameName the name of the game for which to retrieve the leaderboard
      * @return ResultSet containing the leaderboard data
      */
     public static ResultSet getLeaderboard(String gameName) {
@@ -104,8 +97,6 @@ public class DatabaseManager {
 
     /**
      * Retrieves a user's statistics from the database.
-     *
-     * @param username the username of the user
      * @return ResultSet containing the user's statistics
      */
     public static ResultSet getUserStatistics(String username) {
