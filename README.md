@@ -24,18 +24,20 @@ This project is a collection of retro-styled games built using **Java**. The pro
 ### Setting Up the Project
 
 1. **Clone the Repository**:
-   ```bash
+   ```
    git clone https://github.com/h-yzeng/retro-games.git
    cd retro-games
 
 2. **Database Setup**:
 - Make sure you have **MySQL** installed and running.
-- Import the SQL script located in /db/create_tables.sql to set up the required database schema: mysql -u your-username -p retro_games_db < db/create_tables.sql
+- Import the SQL script located in `/db/create_tables.sql` to set up the required database schema:
+  ```
+  mysql -u your-username -p retro_games_db < db/create_tables.sql
 
 3. **Configure Database**:
-- Update the DatabaseManager.java file with your MySQL credentials (username, password, database name).
+- Update the `DatabaseManager.java` file with your MySQL credentials (username, password, database name).
 
 4. **Compile and Run**:
 - Open the project in **Eclipse IDE** or your preferred Java IDE.
-- Compile the Java files, ensuring the necessary libraries (jbcrypt and mysql-connector) are in the classpath.
-- Run the LoginScreen class as the main entry point to the application.
+- Compile the Java files, ensuring the necessary libraries (`jbcrypt` and `mysql-connector`) are in the classpath.
+- Run the `LoginScreen` class as the main entry point to the application.
