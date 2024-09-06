@@ -80,5 +80,5 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 - Improve the leaderboard feature with more detailed stats.
 - Add sound effects to the games for a better user experience.
 
-![GitHub last commit](https://img.shields.io/github/last-commit/h-yzeng/retro-games)
-![GitHub license](https://img.shields.io/github/license/h-yzeng/retro-games)
+![GitHub last commit](https://img.shields.io/github/last-commit/h-yzeng/Retro-Minigames)
+![GitHub license](https://img.shields.io/github/license/h-yzeng/Retro-Minigames)
