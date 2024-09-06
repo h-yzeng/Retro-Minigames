@@ -24,14 +24,14 @@ This project is a collection of retro-styled games built using **Java**. The pro
 ### Setting Up the Project
 
 1. **Clone the Repository**:
-   ```
+   ```bash
    git clone https://github.com/h-yzeng/retro-games.git
    cd retro-games
 
 2. **Database Setup**:
 - Make sure you have **MySQL** installed and running.
 - Import the SQL script located in `/db/create_tables.sql` to set up the required database schema:
-  ```
+  ```bash
   mysql -u your-username -p retro_games_db < db/create_tables.sql
 
 3. **Configure Database**:
@@ -41,3 +41,32 @@ This project is a collection of retro-styled games built using **Java**. The pro
 - Open the project in **Eclipse IDE** or your preferred Java IDE.
 - Compile the Java files, ensuring the necessary libraries (`jbcrypt` and `mysql-connector`) are in the classpath.
 - Run the `LoginScreen` class as the main entry point to the application.
+
+## How to Play
+
+### Snake:
+- Use **WASD** keys to control the snake's movement.
+- Collect apples to grow longer. Don’t hit the walls or yourself!
+
+### Pong:
+- **W** and **S** keys for Player 1 (left paddle).
+- **Up** and **Down** arrow keys for Player 2 (right paddle).
+- First to 10 points wins.
+
+### Tic-Tac-Toe:
+- Click on the empty grid to place your symbol (X or O).
+- Get three in a row to win. A line highlights the winning combination.
+
+## How to Run the Project Locally
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/h-yzeng/retro-games.git
+
+2. Setup the database as described above.
+3. Open the project in your preferred IDE, compile it, and run the `LoginScreen` class to start.
+
+## Authors
+- **Henry Zeng** - [h-yzeng](https://github.com/h-yzeng)
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/h-yzeng/Retro-Minigames/blob/master/LICENSE) file for details.
