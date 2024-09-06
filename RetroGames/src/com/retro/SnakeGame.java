@@ -197,30 +197,51 @@ public class SnakeGame extends JFrame {
         g.setColor(Color.RED);
         g.setFont(font);
         g.drawString(message, (WINDOW_WIDTH - metrics.stringWidth(message)) / 2, WINDOW_HEIGHT / 2);
+        
+        // Save the score if it's a high score
+        saveHighScore("Snake", applesEaten);
     }
 
+ // Method to save high score in the database
+    private void saveHighScore(String gameName, int score) {
+        if (UserService.isUserLoggedIn()) {
+            User user = UserService.getLoggedInUser();
+            try (Connection conn = DatabaseManager.connect()) {
+                String query = "INSERT INTO highscores (user_id, game_name, high_score) VALUES (?, ?, ?)";
+                try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                    stmt.setInt(1, user.getId());
+                    stmt.setString(2, gameName);
+                    stmt.setInt(3, score);
+                    stmt.executeUpdate();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
     private class MyKeyAdapter extends KeyAdapter {
         @Override
         public void keyPressed(KeyEvent e) {
             switch (e.getKeyCode()) {
-                case KeyEvent.VK_LEFT:
-                    if (direction != 'R') {
-                        direction = 'L';
-                    }
-                    break;
-                case KeyEvent.VK_RIGHT:
-                    if (direction != 'L') {
-                        direction = 'R';
-                    }
-                    break;
-                case KeyEvent.VK_UP:
+                case KeyEvent.VK_W: // Move Up
                     if (direction != 'D') {
                         direction = 'U';
                     }
                     break;
-                case KeyEvent.VK_DOWN:
+                case KeyEvent.VK_S: // Move Down
                     if (direction != 'U') {
                         direction = 'D';
+                    }
+                    break;
+                case KeyEvent.VK_A: // Move Left
+                    if (direction != 'R') {
+                        direction = 'L';
+                    }
+                    break;
+                case KeyEvent.VK_D: // Move Right
+                    if (direction != 'L') {
+                        direction = 'R';
                     }
                     break;
             }

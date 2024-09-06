@@ -170,7 +170,59 @@ public class PongGame extends JFrame {
             endGame("Player 2 Wins!");
         }
     }
+    
+ // Method to reset the game after it ends or for a new round
+    private void resetGame() {
+        // Reset paddles
+        player1Paddle.setPosition(PADDLE_EDGE_OFFSET, HEIGHT / 2 - PADDLE_HEIGHT / 2);
+        player2Paddle.setPosition(WIDTH - PADDLE_EDGE_OFFSET - PADDLE_WIDTH, HEIGHT / 2 - PADDLE_HEIGHT / 2);
 
+        // Reset ball
+        ball.setPosition(WIDTH / 2 - BALL_SIZE / 2, HEIGHT / 2 - BALL_SIZE / 2);
+        ball.setDirection(BALL_SPEED * (Math.random() < 0.5 ? 1 : -1), BALL_SPEED * (Math.random() < 0.5 ? 1 : -1));
+
+        // Optionally reset scores if starting a new game
+        player1Score = 0;
+        player2Score = 0;
+
+        // Restart the game timer
+        isGameRunning = true;
+        gameTimer.start();
+    }
+
+
+ // Game over method that takes the winner as a parameter
+    private void gameOver(String winner) {
+        JOptionPane.showMessageDialog(this, winner + " wins the game!");
+
+        // Save high score based on the winning player
+        if (winner.equals("Player 1")) {
+            saveHighScore("Pong", player1Score);
+        } else {
+            saveHighScore("Pong", player2Score);
+        }
+
+        resetGame();
+    }
+
+    // Save high score to the database
+    private void saveHighScore(String gameName, int score) {
+        if (UserService.isUserLoggedIn()) {
+            User user = UserService.getLoggedInUser();
+            try (Connection conn = DatabaseManager.connect()) {
+                String query = "INSERT INTO highscores (user_id, game_name, high_score) VALUES (?, ?, ?)";
+                try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                    stmt.setInt(1, user.getId());
+                    stmt.setString(2, gameName);
+                    stmt.setInt(3, score);
+                    stmt.executeUpdate();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
     /**
      * Ends the game and shows a message.
      * @param winnerMessage the message to show indicating the winner
@@ -180,8 +232,16 @@ public class PongGame extends JFrame {
         gameTimer.stop();
         JOptionPane.showMessageDialog(this, winnerMessage, "Game Over", JOptionPane.INFORMATION_MESSAGE);
         updateStatistics(winnerMessage.contains("Player 1") ? true : false);
-        dispose(); // Close the game window
+
+        // Ask if the player wants to play again
+        int response = JOptionPane.showConfirmDialog(this, "Do you want to play again?", "Play Again", JOptionPane.YES_NO_OPTION);
+        if (response == JOptionPane.YES_OPTION) {
+            resetGame(); // Reset the game if the player wants to play again
+        } else {
+            dispose(); // Close the game window if the player does not want to play again
+        }
     }
+
 
     /**
      * Resets the ball to the starting position after scoring, moving towards the specified player.
@@ -270,6 +330,9 @@ public class PongGame extends JFrame {
     /**
      * Paddle class represents a paddle in the Pong game.
      */
+    /**
+     * Paddle class represents a paddle in the Pong game.
+     */
     private class Paddle {
         private int x, y;
 
@@ -296,6 +359,12 @@ public class PongGame extends JFrame {
 
         public Rectangle getBounds() {
             return new Rectangle(x, y, PADDLE_WIDTH, PADDLE_HEIGHT);
+        }
+
+        // Add the setPosition method to update paddle's position
+        public void setPosition(int x, int y) {
+            this.x = x;
+            this.y = y;
         }
     }
 

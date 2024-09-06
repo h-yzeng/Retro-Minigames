@@ -12,18 +12,13 @@ import org.mindrot.jbcrypt.BCrypt;
 public class UserService {
     private static User loggedInUser = null; // Static variable to store the logged-in user
 
-    /**
-     * Registers a new user in the database.
-     * @return true if the user is registered successfully; false otherwise
-     */
+    // Method to register a new user
     public boolean registerUser(User user, String plainPassword) {
         try (Connection conn = DatabaseManager.connect();
              PreparedStatement preparedStatement = conn.prepareStatement(
                      "INSERT INTO users (username, password) VALUES (?, ?)")) {
 
-            // Hash the password before storing
             String hashedPassword = BCrypt.hashpw(plainPassword, BCrypt.gensalt());
-
             preparedStatement.setString(1, user.getUsername());
             preparedStatement.setString(2, hashedPassword);
 
@@ -40,24 +35,24 @@ public class UserService {
         }
     }
 
-    /**
-     * Authenticates a user by checking the stored hash with the provided password.
-     * @return true if the user is authenticated successfully; false otherwise
-     */
+    // Method to authenticate a user and retrieve their ID
     public boolean authenticateUser(User user, String plainPassword) {
         try (Connection conn = DatabaseManager.connect();
              PreparedStatement preparedStatement = conn.prepareStatement(
-                     "SELECT password FROM users WHERE username = ?")) {
+                     "SELECT id, password FROM users WHERE username = ?")) {
 
             preparedStatement.setString(1, user.getUsername());
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
                     String storedHash = resultSet.getString("password");
+                    int userId = resultSet.getInt("id");
 
-                    // Validate the plain password against the stored hash
+                    // Check if the plain password matches the stored hash
                     if (BCrypt.checkpw(plainPassword, storedHash)) {
-                        loggedInUser = user; // Store the logged-in user
+                        // Set the user's ID and mark them as logged in
+                        user.setId(userId);
+                        loggedInUser = user;
                         return true;
                     }
                 }
@@ -69,26 +64,15 @@ public class UserService {
         return false;
     }
 
-    /**
-     * Logs out the current user.
-     */
-    public static void logoutUser() {
-        loggedInUser = null; // Clear the logged-in user
-    }
-
-    /**
-     * Checks if a user is currently logged in.
-     * @return true if a user is logged in; false otherwise
-     */
-    public static boolean isUserLoggedIn() {
-        return loggedInUser != null;
-    }
-
-    /**
-     * Gets the currently logged-in user.
-     * @return the currently logged-in User object, or null if no user is logged in
-     */
     public static User getLoggedInUser() {
         return loggedInUser;
+    }
+    
+    public static void logoutUser() {
+        loggedInUser = null;
+    }
+
+    public static boolean isUserLoggedIn() {
+        return loggedInUser != null;
     }
 }

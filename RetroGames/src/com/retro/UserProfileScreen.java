@@ -1,10 +1,9 @@
 package com.retro;
 
 import javax.swing.*;
-import org.mindrot.jbcrypt.BCrypt;
 import java.awt.*;
-import java.awt.event.*;
 import java.sql.*;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * UserProfileScreen class represents the user profile management screen.
@@ -22,9 +21,12 @@ public class UserProfileScreen extends JFrame {
         this.currentUsername = username;
 
         setTitle("User Profile");
-        setSize(300, 400); // Increased size to accommodate more information
+        setSize(400, 400); // Increased size to accommodate more information
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null); // Center the frame
+
+        // Fetch user ID based on username
+        this.userId = fetchUserIdByUsername(username);
 
         // Create components
         JLabel usernameLabel = new JLabel("Username:");
@@ -37,7 +39,7 @@ public class UserProfileScreen extends JFrame {
         // Fetch and display user statistics
         JPanel statsPanel = new JPanel();
         statsPanel.setLayout(new GridLayout(6, 1));
-        fetchAndDisplayStatistics(statsPanel);
+        fetchPersonalBestScores(statsPanel); // Fetch personal best scores
 
         // Add components to frame
         JPanel panel = new JPanel();
@@ -58,28 +60,54 @@ public class UserProfileScreen extends JFrame {
         setVisible(true);
     }
 
-    private void fetchAndDisplayStatistics(JPanel statsPanel) {
-        try (Connection conn = DatabaseManager.connect();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE username = ?")) {
-
-            stmt.setString(1, currentUsername);
-            try (ResultSet resultSet = stmt.executeQuery()) {
-                if (resultSet.next()) {
-                    this.userId = resultSet.getInt("id"); // Get user ID for further operations
-                    statsPanel.add(new JLabel("Tic Tac Toe Games Played: " + resultSet.getInt("tic_tac_toe_games_played")));
-                    statsPanel.add(new JLabel("Tic Tac Toe Games Won: " + resultSet.getInt("tic_tac_toe_games_won")));
-                    statsPanel.add(new JLabel("Snake Games Played: " + resultSet.getInt("snake_games_played")));
-                    statsPanel.add(new JLabel("Snake High Score: " + resultSet.getInt("snake_high_score")));
-                    statsPanel.add(new JLabel("Pong Games Played: " + resultSet.getInt("pong_games_played")));
-                    statsPanel.add(new JLabel("Pong Games Won: " + resultSet.getInt("pong_games_won")));
+    /**
+     * Fetches the personal best scores for each game and displays them on the profile.
+     */
+    private void fetchPersonalBestScores(JPanel statsPanel) {
+        try (Connection conn = DatabaseManager.connect()) {
+            String query = "SELECT game_name, MAX(high_score) AS best_score FROM highscores WHERE user_id = ? GROUP BY game_name";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setInt(1, userId); // Assuming userId is set when the user logs in
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        String gameName = rs.getString("game_name");
+                        int bestScore = rs.getInt("best_score");
+                        statsPanel.add(new JLabel(gameName + " Personal Best: " + bestScore));
+                    }
                 }
             }
-
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
+    /**
+     * Fetches the user ID from the database based on the username.
+     * @return The user ID if found; -1 otherwise.
+     */
+    private int fetchUserIdByUsername(String username) {
+        int userId = -1;
+        try (Connection conn = DatabaseManager.connect()) {
+            if (conn != null) {
+                String query = "SELECT id FROM users WHERE username = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                    stmt.setString(1, username);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            userId = rs.getInt("id");
+                        }
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return userId;
+    }
+
+    /**
+     * Updates the user profile with new username and password.
+     */
     private void updateProfile() {
         String newUsername = usernameField.getText();
         String newPassword = new String(passwordField.getPassword());
@@ -111,6 +139,9 @@ public class UserProfileScreen extends JFrame {
         }
     }
 
+    /**
+     * Navigates back to the Dashboard screen.
+     */
     private void goBack() {
         this.dispose();
         new DashboardScreen(currentUsername).setVisible(true);
