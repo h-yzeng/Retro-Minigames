@@ -2,6 +2,8 @@ package com.retro;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * DashboardScreen class represents the main dashboard after a user logs in.
@@ -13,27 +15,43 @@ public class DashboardScreen extends JFrame {
     public DashboardScreen(String username) {
         this.username = username; // Initialize username
 
+        // Frame settings
         setTitle("Welcome " + username);
-        setSize(400, 350);
+        setSize(450, 400); // Slightly larger to fit new styles
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // Center the frame
+        setResizable(false);  // Disable resizing to maintain layout
 
         // Create components
         JLabel welcomeLabel = new JLabel("Welcome, " + username + "!", SwingConstants.CENTER);
-        JButton playTicTacToeButton = new JButton("Play Tic-Tac-Toe");
-        JButton playSnakeButton = new JButton("Play Snake");
-        JButton playPongButton = new JButton("Play Pong");
-        JButton profileButton = new JButton("Profile");
-        JButton logoutButton = new JButton("Logout");
+        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        welcomeLabel.setForeground(new Color(0, 0, 0));  // Black color for welcome message
 
-        // Add components to frame
-        setLayout(new GridLayout(6, 1));
-        add(welcomeLabel);
-        add(playTicTacToeButton);
-        add(playSnakeButton);
-        add(playPongButton);
-        add(profileButton);
-        add(logoutButton);
+        // Create game buttons with modern styles and icons
+        JButton playTicTacToeButton = createStyledButton("Play Tic-Tac-Toe", "");
+        JButton playSnakeButton = createStyledButton("Play Snake", "");
+        JButton playPongButton = createStyledButton("Play Pong", "");
+
+        // Profile and Logout buttons with distinct styles
+        JButton profileButton = createProfileLogoutButton("Profile");
+        JButton logoutButton = createProfileLogoutButton("Logout");
+
+        // Layout for buttons
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(5, 1, 10, 10));  // 5 rows, vertical gap of 10px
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));  // Padding around the panel
+
+        // Add buttons to panel
+        buttonPanel.add(playTicTacToeButton);
+        buttonPanel.add(playSnakeButton);
+        buttonPanel.add(playPongButton);
+        buttonPanel.add(profileButton);
+        buttonPanel.add(logoutButton);
+
+        // Set layout and add components to the frame
+        setLayout(new BorderLayout());
+        add(welcomeLabel, BorderLayout.NORTH);
+        add(buttonPanel, BorderLayout.CENTER);
 
         // Action listeners for buttons
         playTicTacToeButton.addActionListener(e -> {
@@ -62,7 +80,7 @@ public class DashboardScreen extends JFrame {
 
         profileButton.addActionListener(e -> {
             if (UserService.isUserLoggedIn()) {
-                new UserProfileScreen(username); // Open UserProfileScreen with the username
+                new UserProfileScreen(username, this); // Open UserProfileScreen with the username
             } else {
                 showLoginError();
             }
@@ -71,6 +89,60 @@ public class DashboardScreen extends JFrame {
         logoutButton.addActionListener(e -> handleLogout());
 
         setVisible(true);
+    }
+
+    /**
+     * Creates a modern styled button with a label and icon, including hover effect.
+     */
+    private JButton createStyledButton(String text, String icon) {
+        JButton button = new JButton(icon + " " + text);
+        button.setFont(new Font("Arial", Font.BOLD, 16));
+        button.setBackground(new Color(70, 130, 180));  // Steel blue color
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);  // Remove focus border
+        button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));  // Padding for button
+
+        // Add hover effect
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(new Color(100, 149, 237));  // Lighter blue on hover
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(new Color(70, 130, 180));  // Back to original color
+            }
+        });
+
+        return button;
+    }
+
+    /**
+     * Creates styled Profile/Logout buttons with hover effect.
+     */
+    private JButton createProfileLogoutButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, 16));
+        button.setBackground(new Color(34, 139, 34));  // Forest Green color
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);  // Remove focus border
+        button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));  // Padding for button
+
+        // Add hover effect
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(new Color(50, 205, 50));  // Lighter green on hover
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(new Color(34, 139, 34));  // Back to original color
+            }
+        });
+
+        return button;
     }
 
     /**
