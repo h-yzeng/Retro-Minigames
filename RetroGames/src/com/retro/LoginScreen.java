@@ -91,8 +91,19 @@ public class LoginScreen extends JFrame {
         add(panel);
 
         // Attach event listeners to buttons
-        loginButton.addActionListener(e -> handleLogin(userText, passText));
-        registerButton.addActionListener(e -> handleRegister(userText, passText));
+        loginButton.addActionListener(e -> {
+            // Play button click sound
+            SoundManager.playSound("assets/sounds/button_click.wav");
+
+            handleLogin(userText, passText);
+        });
+
+        registerButton.addActionListener(e -> {
+            // Play button click sound
+            SoundManager.playSound("assets/sounds/button_click.wav");
+
+            handleRegister(userText, passText);
+        });
     }
 
 

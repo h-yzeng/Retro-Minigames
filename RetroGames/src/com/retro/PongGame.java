@@ -142,31 +142,38 @@ public class PongGame extends JFrame {
         // Ball collision with top and bottom borders
         if (ball.getY() <= 0 || ball.getY() >= HEIGHT - BALL_SIZE) {
             ball.reverseYDirection();
+            // No sound when the ball hits the top or bottom walls
         }
 
         // Ball collision with left paddle
         if (ball.intersects(player1Paddle)) {
             ball.reverseXDirection();
+            SoundManager.playSound("assets/sounds/hit_sound.wav"); // Play hit sound when ball hits a paddle
         }
 
         // Ball collision with right paddle
         if (ball.intersects(player2Paddle)) {
             ball.reverseXDirection();
+            SoundManager.playSound("assets/sounds/hit_sound.wav"); // Play hit sound when ball hits a paddle
         }
 
         // Check if the ball goes out of bounds (scoring)
         if (ball.getX() <= 0) {
             player2Score++;
+            SoundManager.playSound("assets/sounds/points_score.wav"); // Play sound when player scores
             resetBallDirectionTowardsPlayer(2); // Ball moves towards player 2
         } else if (ball.getX() >= WIDTH - BALL_SIZE) {
             player1Score++;
+            SoundManager.playSound("assets/sounds/points_score.wav"); // Play sound when player scores
             resetBallDirectionTowardsPlayer(1); // Ball moves towards player 1
         }
 
         // Check if a player has reached the score limit
         if (player1Score >= SCORE_LIMIT) {
+            SoundManager.playSound("assets/sounds/winning_sound.wav"); // Play winning sound for Player 1
             endGame("Player 1 Wins!");
         } else if (player2Score >= SCORE_LIMIT) {
+            SoundManager.playSound("assets/sounds/winning_sound.wav"); // Play winning sound for Player 2
             endGame("Player 2 Wins!");
         }
     }

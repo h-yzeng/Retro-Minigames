@@ -28,10 +28,13 @@ public class SnakeGame extends JFrame {
     private String username;
     private int userId;
 
+    private SoundManager soundManager; // SoundManager to play sound effects
+    private DashboardScreen dashboardScreen; // Reference to the existing DashboardScreen
+
     /**
      * Constructs a new SnakeGame window.
      */
-    public SnakeGame(String username) {
+    public SnakeGame(String username, DashboardScreen dashboardScreen) {
         if (!UserService.isUserLoggedIn()) {
             JOptionPane.showMessageDialog(null, "Access denied! You must be logged in to play.", "Access Denied", JOptionPane.WARNING_MESSAGE);
             this.dispose();
@@ -40,6 +43,8 @@ public class SnakeGame extends JFrame {
 
         this.username = username;
         this.userId = fetchUserIdByUsername(username); // Correctly fetch user ID from database
+        this.soundManager = new SoundManager(); // Initialize sound manager
+        this.dashboardScreen = dashboardScreen;  // Store the reference to the existing DashboardScreen
 
         setTitle("Snake Game");
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -89,6 +94,12 @@ public class SnakeGame extends JFrame {
     }
 
     private void startGame() {
+        // Initialize the snake's starting position
+        for (int i = 0; i < bodyParts; i++) {
+            x[i] = UNIT_SIZE * (bodyParts - i - 1);
+            y[i] = 0;
+        }
+
         newApple();
         running = true;
         timer = new Timer(DELAY, new ActionListener() {
@@ -136,17 +147,21 @@ public class SnakeGame extends JFrame {
         if ((x[0] == appleX) && (y[0] == appleY)) {
             bodyParts++;
             applesEaten++;
+            SoundManager.playSound("assets/sounds/points_score.wav"); // Play sound when apple is eaten
             newApple();
         }
     }
 
     private void checkCollisions() {
+        // Check if head collides with body
         for (int i = bodyParts; i > 0; i--) {
             if ((x[0] == x[i]) && (y[0] == y[i])) {
                 running = false;
+                break;
             }
         }
 
+        // Check if head collides with walls
         if (x[0] < 0 || x[0] >= WINDOW_WIDTH || y[0] < 0 || y[0] >= WINDOW_HEIGHT) {
             running = false;
         }
@@ -177,8 +192,26 @@ public class SnakeGame extends JFrame {
 
     private void gameOver() {
         int highScore = applesEaten;
-        JOptionPane.showMessageDialog(this, "Game Over. Your score: " + highScore, "Game Over", JOptionPane.INFORMATION_MESSAGE);
+        SoundManager.playSound("assets/sounds/game_over.wav"); // Play game over sound
         updateStatistics(highScore);
+
+        String message = "Game Over. Your score: " + highScore + "\nDo you want to play again?";
+        int response = JOptionPane.showConfirmDialog(
+            this,
+            message,
+            "Game Over",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (response == JOptionPane.YES_OPTION) {
+            restartGame(); // Restart the game
+        } else {
+            this.dispose(); // Close the current game window
+            if (dashboardScreen != null) {
+                dashboardScreen.setVisible(true); // Show the existing DashboardScreen
+            }
+        }
     }
 
     private void updateStatistics(int highScore) {
@@ -202,7 +235,7 @@ public class SnakeGame extends JFrame {
         saveHighScore("Snake", applesEaten);
     }
 
- // Method to save high score in the database
+    // Method to save high score in the database
     private void saveHighScore(String gameName, int score) {
         if (UserService.isUserLoggedIn()) {
             User user = UserService.getLoggedInUser();
@@ -219,7 +252,32 @@ public class SnakeGame extends JFrame {
             }
         }
     }
-    
+
+    private void restartGame() {
+        // Reset game variables
+        bodyParts = 6;
+        applesEaten = 0;
+        direction = 'R';
+        running = true;
+
+        // Reset the snake's position to the center
+        int centerX = WINDOW_WIDTH / 2;
+        int centerY = WINDOW_HEIGHT / 2;
+        for (int i = 0; i < bodyParts; i++) {
+            x[i] = centerX - i * UNIT_SIZE;
+            y[i] = centerY;
+        }
+
+        // Generate a new apple
+        newApple();
+
+        // Restart the timer
+        timer.start();
+
+        // Repaint the game panel to reflect the reset state
+        repaint();
+    }
+
     private class MyKeyAdapter extends KeyAdapter {
         @Override
         public void keyPressed(KeyEvent e) {

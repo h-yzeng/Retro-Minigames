@@ -98,8 +98,19 @@ public class UserProfileScreen extends JFrame {
         add(statsPanel, BorderLayout.SOUTH);
 
         // Action listeners for buttons
-        updateButton.addActionListener(e -> updateProfile());
-        backButton.addActionListener(e -> goBack());
+        updateButton.addActionListener(e -> {
+            // Play button click sound
+            SoundManager.playSound("assets/sounds/button_click.wav");
+
+            updateProfile();
+        });
+
+        backButton.addActionListener(e -> {
+            // Play button click sound
+            SoundManager.playSound("assets/sounds/button_click.wav");
+
+            goBack();
+        });
 
         setVisible(true);
     }

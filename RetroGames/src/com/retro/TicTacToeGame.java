@@ -16,6 +16,8 @@ public class TicTacToeGame extends JFrame {
     private String username;
     private int userId;
 
+    private SoundManager soundManager; // Add SoundManager for sound effects
+
     public TicTacToeGame(String username) {
         if (!UserService.isUserLoggedIn()) {
             JOptionPane.showMessageDialog(null, "Access denied! You must be logged in to play.", "Access Denied", JOptionPane.WARNING_MESSAGE);
@@ -25,6 +27,7 @@ public class TicTacToeGame extends JFrame {
 
         this.username = username;
         this.userId = fetchUserIdByUsername(username);
+        this.soundManager = new SoundManager(); // Initialize SoundManager
 
         currentPlayer = 'X';
         buttons = new JButton[9];
@@ -32,10 +35,10 @@ public class TicTacToeGame extends JFrame {
         winningCombination = new int[3];
 
         setTitle("Tic Tac Toe");
-        setSize(300, 300);
+        setSize(350, 350); // Slightly larger to fit the new styles
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(3, 3));
+        setLayout(new GridLayout(3, 3, 10, 10)); // Add spacing between buttons
 
         linePanel = new LinePanel(); // Initialize the custom panel
         setGlassPane(linePanel); // Add the panel to the glass pane, above the buttons
@@ -48,8 +51,10 @@ public class TicTacToeGame extends JFrame {
     private void initializeBoard() {
         for (int i = 0; i < 9; i++) {
             buttons[i] = new JButton();
-            buttons[i].setFont(new Font("Arial", Font.PLAIN, 40));
+            buttons[i].setFont(new Font("Arial", Font.BOLD, 40)); // Larger font for a modern look
             buttons[i].setFocusPainted(false);
+            buttons[i].setBackground(new Color(200, 200, 200)); // Light grey background
+            buttons[i].setBorder(BorderFactory.createLineBorder(Color.BLACK, 2)); // Add a black border around buttons
             buttons[i].addActionListener(new ButtonClickListener(i));
             add(buttons[i]);
             board[i] = ' ';
@@ -67,6 +72,9 @@ public class TicTacToeGame extends JFrame {
             if (board[index] == ' ' && !gameWon) {
                 board[index] = currentPlayer;
                 buttons[index].setText(String.valueOf(currentPlayer));
+                buttons[index].setForeground(Color.BLACK); // Set text color to black
+
+                soundManager.playSound("assets/sounds/button_click.wav"); // Play sound when a player makes a move
 
                 if (checkForWin()) {
                     gameWon = true;
@@ -109,7 +117,8 @@ public class TicTacToeGame extends JFrame {
 
     private void highlightWinningCells() {
         for (int i : winningCombination) {
-            buttons[i].setBackground(Color.GREEN);
+            buttons[i].setBackground(Color.BLACK); // Highlight the winning buttons in black
+            buttons[i].setForeground(Color.WHITE); // Change text to white for better contrast
         }
     }
 
@@ -117,14 +126,15 @@ public class TicTacToeGame extends JFrame {
         currentPlayer = 'X';
         for (int i = 0; i < 9; i++) {
             buttons[i].setText("");
-            buttons[i].setBackground(null);
+            buttons[i].setBackground(new Color(200, 200, 200)); // Reset to light grey background
+            buttons[i].setForeground(Color.BLACK); // Reset text color to black
             board[i] = ' ';
         }
         gameWon = false;
         linePanel.clearLine(); // Clear the winning line on reset
     }
 
-    // Custom JPanel class to draw the winning line
+ // Custom JPanel class to draw the winning line
     private class LinePanel extends JComponent {
         private JButton startButton, endButton; // Buttons that represent the start and end of the line
 
@@ -145,7 +155,7 @@ public class TicTacToeGame extends JFrame {
             super.paintComponent(g);
             if (startButton != null && endButton != null) {
                 Graphics2D g2 = (Graphics2D) g;
-                g2.setColor(Color.RED);
+                g2.setColor(Color.WHITE); // Change line color to white
                 g2.setStroke(new BasicStroke(5)); // Set the line thickness to 5
 
                 // Get the center points of the start and end buttons
@@ -161,8 +171,10 @@ public class TicTacToeGame extends JFrame {
     // Handle game over: show winner and save result to the database
     private void handleGameOver(char winner) {
         if (winner == ' ') {
+            soundManager.playSound("assets/sounds/game_over.wav"); // Play draw sound
             JOptionPane.showMessageDialog(this, "It's a draw!");
         } else {
+            soundManager.playSound("assets/sounds/winning_sound.wav"); // Play winning sound
             JOptionPane.showMessageDialog(this, "Player " + winner + " wins!");
         }
 
@@ -171,7 +183,18 @@ public class TicTacToeGame extends JFrame {
             saveGameResult("Tic-Tac-Toe", winner);
         }
 
-        resetBoard(); // Reset the board for a new game
+        askPlayAgain(); // Ask the user if they want to play again
+    }
+
+    // Ask the player if they want to play again
+    private void askPlayAgain() {
+        int response = JOptionPane.showConfirmDialog(this, "Do you want to play again?", "Play Again", JOptionPane.YES_NO_OPTION);
+        if (response == JOptionPane.YES_OPTION) {
+            resetBoard();
+        } else {
+            this.dispose(); // Close the game window if the player does not want to play again
+            // No need to open the dashboard again here
+        }
     }
 
     // Save the game result to the database
@@ -193,15 +216,6 @@ public class TicTacToeGame extends JFrame {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    // Update statistics (custom implementation for your project)
-    private void updateStatistics(boolean isWin) {
-        if (userId != -1) {
-            DatabaseManager.updateUserStatistics(userId, "TicTacToe", isWin, 0);
-        } else {
-            JOptionPane.showMessageDialog(null, "Error updating statistics. User not found.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

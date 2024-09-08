@@ -53,40 +53,55 @@ public class DashboardScreen extends JFrame {
         add(welcomeLabel, BorderLayout.NORTH);
         add(buttonPanel, BorderLayout.CENTER);
 
-        // Action listeners for buttons
+        // Play background music when the dashboard loads
+        SoundManager.playBackgroundMusic("assets/sounds/background_music.wav");
+
+        // Add sound for button clicks and stop background music when switching screens
         playTicTacToeButton.addActionListener(e -> {
+            SoundManager.playSound("assets/sounds/button_click.wav");
+            SoundManager.stopBackgroundMusic(); // Stop background music
             if (UserService.isUserLoggedIn()) {
-                new TicTacToeGame(username); // Pass username to constructor
+                new TicTacToeGame(username);
             } else {
                 showLoginError();
             }
         });
 
         playSnakeButton.addActionListener(e -> {
+            SoundManager.playSound("assets/sounds/button_click.wav");
+            SoundManager.stopBackgroundMusic(); // Stop background music
             if (UserService.isUserLoggedIn()) {
-                new SnakeGame(username); // Pass username to constructor
+                new SnakeGame(username, this);  // Pass 'this' for DashboardScreen reference
             } else {
                 showLoginError();
             }
         });
 
         playPongButton.addActionListener(e -> {
+            SoundManager.playSound("assets/sounds/button_click.wav");
+            SoundManager.stopBackgroundMusic(); // Stop background music
             if (UserService.isUserLoggedIn()) {
-                new PongGame(username); // Pass username to constructor
+                new PongGame(username);
             } else {
                 showLoginError();
             }
         });
 
         profileButton.addActionListener(e -> {
+            SoundManager.playSound("assets/sounds/button_click.wav");
+            SoundManager.stopBackgroundMusic(); // Stop background music
             if (UserService.isUserLoggedIn()) {
-                new UserProfileScreen(username, this); // Open UserProfileScreen with the username
+                new UserProfileScreen(username, this);
             } else {
                 showLoginError();
             }
         });
 
-        logoutButton.addActionListener(e -> handleLogout());
+        logoutButton.addActionListener(e -> {
+            SoundManager.playSound("assets/sounds/button_click.wav");
+            SoundManager.stopBackgroundMusic(); // Stop background music
+            handleLogout();
+        });
 
         setVisible(true);
     }
