@@ -72,6 +72,26 @@ This project is a collection of retro-styled games built using **Java**. The pro
 - Get three in a row to win. A line highlights the winning combination.
 - **Tracked stats**: Games played, games won, games drawn.
 
+## Screenshots
+
+### Login Screen and Main Menu
+<div style="display: flex; justify-content: space-around;">
+  <img src="screenshots/login_screen.png" alt="Login Screen" style="width: 45%;"/>
+  <img src="screenshots/main_menu.png" alt="Main Menu" style="width: 45%;"/>
+</div>
+
+### User Profile with Game Stats
+<div style="text-align: center;">
+  <img src="screenshots/user_profile.png" alt="User Profile with Stats" style="width: 70%;"/>
+</div>
+
+### Gameplay Screenshots: Snake, Pong, and Tic-Tac-Toe
+<div style="display: flex; justify-content: space-around;">
+  <img src="screenshots/snake_gameplay.png" alt="Snake Gameplay" style="width: 30%;"/>
+  <img src="screenshots/pong_gameplay.png" alt="Pong Gameplay" style="width: 30%;"/>
+  <img src="screenshots/tictactoe_gameplay.png" alt="Tic-Tac-Toe Gameplay" style="width: 30%;"/>
+</div>
+
 ## How to Run the Project Locally
 1. Clone the repository:
    ```bash
