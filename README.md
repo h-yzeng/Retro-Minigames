@@ -1,5 +1,4 @@
-# 🎮 Retro MiniGames Project
-
+# 🎮 Retro-MiniGames 
 This project is a collection of retro-styled games built using **Java**. The project also includes a **login system** backed by a MySQL database to store user credentials, high scores, and game statistics. The project is a personal project created to demonstrate Java Proficiency.
 
 ## Games Included:
