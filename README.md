@@ -10,7 +10,6 @@ This project is a collection of retro-styled games built using **Java**. The pro
 ## Features:
 - **User Authentication**: Users can register, log in, and have their personal data stored securely with hashed passwords.
 - **High Scores & Stats**: Each player’s high scores and game statistics (games played, wins) are tracked and displayed in their profile.
-- **Leaderboard**: A leaderboard is maintained to show the highest scores across all players.
 - **Responsive UI**: Easy-to-use graphical user interface (GUI) built with **Swing**.
 
 ## Getting Started
