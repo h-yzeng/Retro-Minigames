@@ -1,4 +1,4 @@
-# 🎮 Retro Games Project
+# 🎮 Retro MiniGames Project
 
 This project is a collection of retro-styled games built using **Java**. The project also includes a **login system** backed by a MySQL database to store user credentials, high scores, and game statistics.
 
@@ -9,14 +9,24 @@ This project is a collection of retro-styled games built using **Java**. The pro
 
 ## Features:
 - **User Authentication**: Users can register, log in, and have their personal data stored securely with hashed passwords.
-- **High Scores & Stats**: Each player’s high scores and game statistics (games played, wins) are tracked and displayed in their profile.
+- **Detailed Game Statistics**: Each player’s high scores and detailed game statistics are tracked and displayed in their profile:
+  - **Snake**: High score, total apples eaten, games played.
+  - **Pong**: Total points, games played, games won.
+  - **Tic-Tac-Toe**: Games played, games won, games drawn.
 - **Responsive UI**: Easy-to-use graphical user interface (GUI) built with **Swing**.
+
+## Recent Updates:
+- Added **detailed game statistics**: tracks draws in Tic-Tac-Toe, total points in Pong, and more.
+- **Sound system integration**: added sound effects for key game events such as scoring, winning, and hitting paddles.
+- Added **replay dialogs** for each game that allow players to easily restart or exit after finishing a game.
+- Updated `UserProfileScreen` to display detailed game statistics.
+- Improved **backend data flow** for user and game management.
 
 ## Getting Started
 
 ### Prerequisites:
 - **Java JDK 8** or higher
-- **Eclipse IDE** or any Java-supporting IDE
+- **Eclipse IDE**, **IntelliJ IDEA**, or any Java-supporting IDE
 - **Git** for version control
 - **MySQL** or any other relational database for data storage
 
@@ -50,15 +60,18 @@ This project is a collection of retro-styled games built using **Java**. The pro
 ### Snake:
 - Use **WASD** keys to control the snake's movement.
 - Collect apples to grow longer. Don’t hit the walls or yourself!
+- **Tracked stats**: High score, total apples eaten, games played.
 
 ### Pong:
 - **W** and **S** keys for Player 1 (left paddle).
 - **Up** and **Down** arrow keys for Player 2 (right paddle).
 - First to 10 points wins.
+- **Tracked stats**: Games played, games won, total points.
 
 ### Tic-Tac-Toe:
 - Click on the empty grid to place your symbol (X or O).
 - Get three in a row to win. A line highlights the winning combination.
+- **Tracked stats**: Games played, games won, games drawn.
 
 ## How to Run the Project Locally
 1. Clone the repository:
@@ -75,9 +88,7 @@ This project is a collection of retro-styled games built using **Java**. The pro
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/h-yzeng/Retro-Minigames/blob/master/LICENSE) file for details.
 
 ## Future Improvements
-- Add more games like Minesweeper or Chess.
-- Improve the leaderboard feature with more detailed stats.
-- Add sound effects to the games for a better user experience.
+- Unknown.
 
 ![GitHub last commit](https://img.shields.io/github/last-commit/h-yzeng/Retro-Minigames)
 ![GitHub license](https://img.shields.io/github/license/h-yzeng/Retro-Minigames)
