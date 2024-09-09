@@ -1,6 +1,6 @@
 # 🎮 Retro MiniGames Project
 
-This project is a collection of retro-styled games built using **Java**. The project also includes a **login system** backed by a MySQL database to store user credentials, high scores, and game statistics.
+This project is a collection of retro-styled games built using **Java**. The project also includes a **login system** backed by a MySQL database to store user credentials, high scores, and game statistics. The project is a personal project created to demonstrate Java Proficiency.
 
 ## Games Included:
 - **Snake** 🐍: A classic arcade game where players control a snake and aim to grow longer without colliding with walls or itself.
