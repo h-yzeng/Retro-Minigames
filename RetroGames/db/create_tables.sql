@@ -8,10 +8,13 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(100) NOT NULL,
     tic_tac_toe_games_played INT DEFAULT 0,
     tic_tac_toe_games_won INT DEFAULT 0,
+    tic_tac_toe_games_drawn INT DEFAULT 0,
     snake_games_played INT DEFAULT 0,
     snake_high_score INT DEFAULT 0,
+    snake_apples_eaten INT DEFAULT 0, -- New column for Snake game
     pong_games_played INT DEFAULT 0,
-    pong_games_won INT DEFAULT 0
+    pong_games_won INT DEFAULT 0,
+    pong_total_points INT DEFAULT 0 -- New column for Pong game
 );
 
 -- Highscores table to store the top scores for each game and user

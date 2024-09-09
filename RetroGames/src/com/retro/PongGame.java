@@ -238,7 +238,10 @@ public class PongGame extends JFrame {
         isGameRunning = false;
         gameTimer.stop();
         JOptionPane.showMessageDialog(this, winnerMessage, "Game Over", JOptionPane.INFORMATION_MESSAGE);
-        updateStatistics(winnerMessage.contains("Player 1") ? true : false);
+
+        // Track if Player 1 won
+        boolean player1Win = winnerMessage.contains("Player 1");
+        updateStatistics(player1Win);  // Update stats based on the winning player
 
         // Ask if the player wants to play again
         int response = JOptionPane.showConfirmDialog(this, "Do you want to play again?", "Play Again", JOptionPane.YES_NO_OPTION);
@@ -248,7 +251,6 @@ public class PongGame extends JFrame {
             dispose(); // Close the game window if the player does not want to play again
         }
     }
-
 
     /**
      * Resets the ball to the starting position after scoring, moving towards the specified player.
@@ -267,11 +269,16 @@ public class PongGame extends JFrame {
      */
     private void updateStatistics(boolean player1Win) {
         if (userId != -1) {
-            DatabaseManager.updateUserStatistics(userId, "Pong", player1Win, 0);
+            int totalPoints = player1Score + player2Score; // Total points scored in the game
+            
+            // Update statistics in the database (player1Win determines if Player 1 won)
+            DatabaseManager.updateUserStatistics(userId, "Pong", player1Win, totalPoints); // Track the total points
         } else {
             JOptionPane.showMessageDialog(null, "Error updating statistics. User not found.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+
 
     /**
      * GamePanel class represents the panel where the game is drawn.

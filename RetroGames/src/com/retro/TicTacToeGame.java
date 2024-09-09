@@ -16,8 +16,6 @@ public class TicTacToeGame extends JFrame {
     private String username;
     private int userId;
 
-    private SoundManager soundManager; // Add SoundManager for sound effects
-
     public TicTacToeGame(String username) {
         if (!UserService.isUserLoggedIn()) {
             JOptionPane.showMessageDialog(null, "Access denied! You must be logged in to play.", "Access Denied", JOptionPane.WARNING_MESSAGE);
@@ -27,7 +25,6 @@ public class TicTacToeGame extends JFrame {
 
         this.username = username;
         this.userId = fetchUserIdByUsername(username);
-        this.soundManager = new SoundManager(); // Initialize SoundManager
 
         currentPlayer = 'X';
         buttons = new JButton[9];
@@ -74,7 +71,7 @@ public class TicTacToeGame extends JFrame {
                 buttons[index].setText(String.valueOf(currentPlayer));
                 buttons[index].setForeground(Color.BLACK); // Set text color to black
 
-                soundManager.playSound("assets/sounds/button_click.wav"); // Play sound when a player makes a move
+                SoundManager.playSound("assets/sounds/button_click.wav"); // Play sound when a player makes a move
 
                 if (checkForWin()) {
                     gameWon = true;
@@ -134,7 +131,7 @@ public class TicTacToeGame extends JFrame {
         linePanel.clearLine(); // Clear the winning line on reset
     }
 
- // Custom JPanel class to draw the winning line
+    // Custom JPanel class to draw the winning line
     private class LinePanel extends JComponent {
         private JButton startButton, endButton; // Buttons that represent the start and end of the line
 
@@ -171,10 +168,10 @@ public class TicTacToeGame extends JFrame {
     // Handle game over: show winner and save result to the database
     private void handleGameOver(char winner) {
         if (winner == ' ') {
-            soundManager.playSound("assets/sounds/game_over.wav"); // Play draw sound
+            SoundManager.playSound("assets/sounds/game_over.wav"); // Play draw sound
             JOptionPane.showMessageDialog(this, "It's a draw!");
         } else {
-            soundManager.playSound("assets/sounds/winning_sound.wav"); // Play winning sound
+            SoundManager.playSound("assets/sounds/winning_sound.wav"); // Play winning sound
             JOptionPane.showMessageDialog(this, "Player " + winner + " wins!");
         }
 
@@ -193,7 +190,6 @@ public class TicTacToeGame extends JFrame {
             resetBoard();
         } else {
             this.dispose(); // Close the game window if the player does not want to play again
-            // No need to open the dashboard again here
         }
     }
 
@@ -206,7 +202,7 @@ public class TicTacToeGame extends JFrame {
                 if (winner != ' ') {
                     query = "UPDATE users SET tic_tac_toe_games_played = tic_tac_toe_games_played + 1, tic_tac_toe_games_won = tic_tac_toe_games_won + 1 WHERE id = ?";
                 } else {
-                    query = "UPDATE users SET tic_tac_toe_games_played = tic_tac_toe_games_played + 1 WHERE id = ?";
+                    query = "UPDATE users SET tic_tac_toe_games_played = tic_tac_toe_games_played + 1, tic_tac_toe_games_drawn = tic_tac_toe_games_drawn + 1 WHERE id = ?";
                 }
 
                 try (PreparedStatement stmt = conn.prepareStatement(query)) {

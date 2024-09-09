@@ -216,7 +216,8 @@ public class SnakeGame extends JFrame {
 
     private void updateStatistics(int highScore) {
         if (userId != -1) {
-            DatabaseManager.updateUserStatistics(userId, "Snake", false, highScore);
+        	// Example in Snake
+        	DatabaseManager.updateUserStatistics(userId, "Snake", false, highScore);
         } else {
             JOptionPane.showMessageDialog(null, "Error updating statistics. User not found.", "Error", JOptionPane.ERROR_MESSAGE);
         }

@@ -29,49 +29,77 @@ public class DatabaseManager {
     }
 
     /**
-     * Updates user statistics after a game.
-     * @param isWin true if the game was won, false otherwise
+     * Updates user statistics after a Tic-Tac-Toe game.
+     * This method tracks wins and draws for Tic-Tac-Toe only.
      */
-    public static void updateUserStatistics(int userId, String gameName, boolean isWin, int highScore) {
+    public static void updateUserStatistics(int userId, String gameName, boolean isWin, boolean isDraw) {
+        try (Connection conn = connect()) {
+            if (conn != null && "tic-tac-toe".equalsIgnoreCase(gameName)) {
+                String updateStatsQuery = "UPDATE users SET tic_tac_toe_games_played = tic_tac_toe_games_played + 1, " +
+                                          "tic_tac_toe_games_won = tic_tac_toe_games_won + ?, tic_tac_toe_games_drawn = tic_tac_toe_games_drawn + ? WHERE id = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(updateStatsQuery)) {
+                    stmt.setInt(1, isWin ? 1 : 0); // Increment wins if it's a win
+                    stmt.setInt(2, isDraw ? 1 : 0); // Increment draws if it's a draw
+                    stmt.setInt(3, userId);
+                    stmt.executeUpdate();
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * Updates user statistics for games like Snake and Pong that don't track draws.
+     * This method is used for games like Snake and Pong.
+     */
+    public static void updateUserStatistics(int userId, String gameName, boolean isWin, int additionalData) {
         try (Connection conn = connect()) {
             if (conn != null) {
                 String updateStatsQuery = null;
-                switch (gameName) {
-                    case "TicTacToe":
-                        updateStatsQuery = "UPDATE users SET tic_tac_toe_games_played = tic_tac_toe_games_played + 1, tic_tac_toe_games_won = tic_tac_toe_games_won + ? WHERE id = ?";
+                
+                switch (gameName.toLowerCase()) {
+                    case "snake":
+                        updateStatsQuery = "UPDATE users SET snake_games_played = snake_games_played + 1, " +
+                                           "snake_high_score = GREATEST(snake_high_score, ?), snake_apples_eaten = snake_apples_eaten + ? WHERE id = ?";
                         try (PreparedStatement stmt = conn.prepareStatement(updateStatsQuery)) {
-                            stmt.setInt(1, isWin ? 1 : 0);
-                            stmt.setInt(2, userId);
+                            stmt.setInt(1, additionalData); // High score
+                            stmt.setInt(2, additionalData); // Apples eaten
+                            stmt.setInt(3, userId);
                             stmt.executeUpdate();
                         }
                         break;
-                    case "Snake":
-                        updateStatsQuery = "UPDATE users SET snake_games_played = snake_games_played + 1, snake_high_score = GREATEST(snake_high_score, ?) WHERE id = ?";
+
+                    case "pong":
+                        updateStatsQuery = "UPDATE users SET pong_games_played = pong_games_played + 1, " +
+                                           "pong_games_won = pong_games_won + ?, pong_total_points = pong_total_points + ? WHERE id = ?";
                         try (PreparedStatement stmt = conn.prepareStatement(updateStatsQuery)) {
-                            stmt.setInt(1, highScore);
-                            stmt.setInt(2, userId);
-                            stmt.executeUpdate();
-                        }
-                        break;
-                    case "Pong":
-                        updateStatsQuery = "UPDATE users SET pong_games_played = pong_games_played + 1, pong_games_won = pong_games_won + ? WHERE id = ?";
-                        try (PreparedStatement stmt = conn.prepareStatement(updateStatsQuery)) {
-                            stmt.setInt(1, isWin ? 1 : 0);
-                            stmt.setInt(2, userId);
+                            stmt.setInt(1, isWin ? 1 : 0); // Increment wins if it's a win
+                            stmt.setInt(2, additionalData); // Add total points scored during the game
+                            stmt.setInt(3, userId);
                             stmt.executeUpdate();
                         }
                         break;
                 }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
 
-                // Update high scores table
-                if (highScore > 0) {
-                    String insertHighScoreQuery = "INSERT INTO highscores (user_id, game_name, high_score) VALUES (?, ?, ?)";
-                    try (PreparedStatement stmt = conn.prepareStatement(insertHighScoreQuery)) {
-                        stmt.setInt(1, userId);
-                        stmt.setString(2, gameName);
-                        stmt.setInt(3, highScore);
-                        stmt.executeUpdate();
-                    }
+    /**
+     * Updates or inserts a high score for a user.
+     */
+    public static void updateHighScore(int userId, String gameName, int highScore) {
+        try (Connection conn = connect()) {
+            if (conn != null) {
+                String insertHighScoreQuery = "INSERT INTO highscores (user_id, game_name, high_score) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE high_score = GREATEST(high_score, ?)";
+                try (PreparedStatement stmt = conn.prepareStatement(insertHighScoreQuery)) {
+                    stmt.setInt(1, userId);
+                    stmt.setString(2, gameName);
+                    stmt.setInt(3, highScore);
+                    stmt.setInt(4, highScore); // For the ON DUPLICATE KEY UPDATE
+                    stmt.executeUpdate();
                 }
             }
         } catch (SQLException ex) {

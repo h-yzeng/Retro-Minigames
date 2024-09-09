@@ -35,11 +35,11 @@ public class UserService {
         }
     }
 
-    // Method to authenticate a user and retrieve their ID
+    // Method to authenticate a user and retrieve their ID and statistics
     public boolean authenticateUser(User user, String plainPassword) {
         try (Connection conn = DatabaseManager.connect();
              PreparedStatement preparedStatement = conn.prepareStatement(
-                     "SELECT id, password FROM users WHERE username = ?")) {
+                     "SELECT * FROM users WHERE username = ?")) {
 
             preparedStatement.setString(1, user.getUsername());
 
@@ -50,9 +50,23 @@ public class UserService {
 
                     // Check if the plain password matches the stored hash
                     if (BCrypt.checkpw(plainPassword, storedHash)) {
-                        // Set the user's ID and mark them as logged in
-                        user.setId(userId);
-                        loggedInUser = user;
+                        // Retrieve game stats
+                        int ticTacToeGamesPlayed = resultSet.getInt("tic_tac_toe_games_played");
+                        int ticTacToeGamesWon = resultSet.getInt("tic_tac_toe_games_won");
+                        int ticTacToeGamesDrawn = resultSet.getInt("tic_tac_toe_games_drawn");
+                        int snakeGamesPlayed = resultSet.getInt("snake_games_played");
+                        int snakeHighScore = resultSet.getInt("snake_high_score");
+                        int snakeApplesEaten = resultSet.getInt("snake_apples_eaten");
+                        int pongGamesPlayed = resultSet.getInt("pong_games_played");
+                        int pongGamesWon = resultSet.getInt("pong_games_won");
+                        int pongTotalPoints = resultSet.getInt("pong_total_points");
+
+                        // Create the User object with full stats
+                        loggedInUser = new User(userId, user.getUsername(),
+                                ticTacToeGamesPlayed, ticTacToeGamesWon, ticTacToeGamesDrawn,
+                                snakeGamesPlayed, snakeHighScore, snakeApplesEaten,
+                                pongGamesPlayed, pongGamesWon, pongTotalPoints);
+
                         return true;
                     }
                 }
@@ -67,7 +81,7 @@ public class UserService {
     public static User getLoggedInUser() {
         return loggedInUser;
     }
-    
+
     public static void logoutUser() {
         loggedInUser = null;
     }

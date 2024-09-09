@@ -18,15 +18,15 @@ public class UserProfileScreen extends JFrame {
     private JButton backButton;
     private String currentUsername;
     private int userId;
-    private DashboardScreen dashboardScreen;  // Reference to the existing DashboardScreen
+    private DashboardScreen dashboardScreen;
 
     public UserProfileScreen(String username, DashboardScreen dashboardScreen) {
         this.currentUsername = username;
-        this.dashboardScreen = dashboardScreen;  // Reference the existing DashboardScreen
+        this.dashboardScreen = dashboardScreen;
 
         // Frame settings
         setTitle("User Profile");
-        setSize(400, 400); // Increased size to accommodate more information
+        setSize(500, 500); // Adjusted size for detailed stats
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null); // Center the frame
         setResizable(false);
@@ -41,45 +41,43 @@ public class UserProfileScreen extends JFrame {
 
         JLabel usernameLabel = new JLabel("Username:");
         usernameField = new JTextField(username);
-        usernameField.setPreferredSize(new Dimension(250, 30));
-        usernameField.setMinimumSize(new Dimension(250, 30));
-        usernameField.setMaximumSize(new Dimension(250, 30));
+        usernameField.setPreferredSize(new Dimension(300, 40));
 
         JLabel passwordLabel = new JLabel("Password:");
         passwordField = new JPasswordField();
-        passwordField.setPreferredSize(new Dimension(250, 30));
-        passwordField.setMinimumSize(new Dimension(250, 30));
-        passwordField.setMaximumSize(new Dimension(250, 30));
+        passwordField.setPreferredSize(new Dimension(300, 40));
 
         updateButton = createStyledButton("Update Profile");
         backButton = createStyledButton("Back");
 
         // Fetch and display user statistics
         JPanel statsPanel = new JPanel();
-        statsPanel.setLayout(new GridLayout(6, 1, 5, 5));
-        statsPanel.setBorder(BorderFactory.createTitledBorder("Personal Best Scores"));
-        fetchPersonalBestScores(statsPanel); // Fetch personal best scores
+        statsPanel.setLayout(new GridLayout(10, 1, 5, 5)); // Adjusted for detailed stats
+        statsPanel.setBorder(BorderFactory.createTitledBorder("Detailed Game Statistics"));
+        fetchUserStatistics(statsPanel); // Fetch detailed game stats
 
         // Add components to frame
         JPanel formPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10); // Add padding
+        gbc.insets = new Insets(10, 10, 10, 10);
 
-        // Position the labels and text fields in a more compact layout
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.EAST;
         formPanel.add(usernameLabel, gbc);
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0; // Allows horizontal expansion of text fields
         formPanel.add(usernameField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0; // Reset weightx for other components
         formPanel.add(passwordLabel, gbc);
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0; // Allows horizontal expansion of text fields
         formPanel.add(passwordField, gbc);
 
         // Button layout
@@ -99,16 +97,12 @@ public class UserProfileScreen extends JFrame {
 
         // Action listeners for buttons
         updateButton.addActionListener(e -> {
-            // Play button click sound
             SoundManager.playSound("assets/sounds/button_click.wav");
-
             updateProfile();
         });
 
         backButton.addActionListener(e -> {
-            // Play button click sound
             SoundManager.playSound("assets/sounds/button_click.wav");
-
             goBack();
         });
 
@@ -143,21 +137,41 @@ public class UserProfileScreen extends JFrame {
     }
 
     /**
-     * Fetches the personal best scores for each game and displays them on the profile.
+     * Fetches the user's detailed game statistics and displays them in the profile.
      */
-    private void fetchPersonalBestScores(JPanel statsPanel) {
-        try (Connection conn = DatabaseManager.connect()) {
-            String query = "SELECT game_name, MAX(high_score) AS best_score FROM highscores WHERE user_id = ? GROUP BY game_name";
-            try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setInt(1, userId); // Assuming userId is set when the user logs in
-                try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        String gameName = rs.getString("game_name");
-                        int bestScore = rs.getInt("best_score");
-                        statsPanel.add(new JLabel(gameName + " Personal Best: " + bestScore));
-                    }
+    private void fetchUserStatistics(JPanel statsPanel) {
+        try (Connection conn = DatabaseManager.connect();
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE username = ?")) {
+
+            stmt.setString(1, currentUsername);
+
+            // Execute query and get ResultSet
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    // Fetch all necessary data before the ResultSet is closed
+                    int ticTacToeGamesPlayed = rs.getInt("tic_tac_toe_games_played");
+                    int ticTacToeGamesWon = rs.getInt("tic_tac_toe_games_won");
+                    int ticTacToeGamesDrawn = rs.getInt("tic_tac_toe_games_drawn");
+                    int snakeGamesPlayed = rs.getInt("snake_games_played");
+                    int snakeHighScore = rs.getInt("snake_high_score");
+                    int snakeApplesEaten = rs.getInt("snake_apples_eaten");
+                    int pongGamesPlayed = rs.getInt("pong_games_played");
+                    int pongGamesWon = rs.getInt("pong_games_won");
+                    int pongTotalPoints = rs.getInt("pong_total_points");
+
+                    // Populate the panel with the fetched data
+                    statsPanel.add(new JLabel("Tic-Tac-Toe Games Played: " + ticTacToeGamesPlayed));
+                    statsPanel.add(new JLabel("Tic-Tac-Toe Games Won: " + ticTacToeGamesWon));
+                    statsPanel.add(new JLabel("Tic-Tac-Toe Games Drawn: " + ticTacToeGamesDrawn));
+                    statsPanel.add(new JLabel("Snake Games Played: " + snakeGamesPlayed));
+                    statsPanel.add(new JLabel("Snake High Score: " + snakeHighScore));
+                    statsPanel.add(new JLabel("Snake Apples Eaten: " + snakeApplesEaten));
+                    statsPanel.add(new JLabel("Pong Games Played: " + pongGamesPlayed));
+                    statsPanel.add(new JLabel("Pong Games Won: " + pongGamesWon));
+                    statsPanel.add(new JLabel("Pong Total Points: " + pongTotalPoints));
                 }
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -165,7 +179,6 @@ public class UserProfileScreen extends JFrame {
 
     /**
      * Fetches the user ID from the database based on the username.
-     * @return The user ID if found; -1 otherwise.
      */
     private int fetchUserIdByUsername(String username) {
         int userId = -1;
@@ -226,6 +239,6 @@ public class UserProfileScreen extends JFrame {
      */
     private void goBack() {
         this.dispose();
-        dashboardScreen.setVisible(true);  // Set the original dashboard visible again
+        dashboardScreen.setVisible(true);
     }
 }
