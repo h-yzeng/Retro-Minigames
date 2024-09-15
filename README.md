@@ -39,7 +39,7 @@ This project is a collection of retro-styled games built using **Java**. The pro
 - **jbcrypt**: For secure password hashing.
 - **mysql-connector**: To connect the project to MySQL.
 
-### Setting Up the Project
+## Setting Up the Project
 
 1. **Clone the Repository**:
    ```bash
@@ -97,14 +97,6 @@ This project is a collection of retro-styled games built using **Java**. The pro
   <img src="RetroGames/assets/images/pong_gameplay.png" alt="Pong Gameplay" style="width: 30%;"/>
   <img src="RetroGames/assets/images/tictactoe_gameplay.png" alt="Tic-Tac-Toe Gameplay" style="width: 30%;"/>
 </div>
-
-## How to Run the Project Locally
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/h-yzeng/retro-games.git
-
-2. Setup the database as described above.
-3. Open the project in your preferred IDE, compile it, and run the `LoginScreen` class to start.
 
 ## Authors
 - **Henry Zeng** - [h-yzeng](https://github.com/h-yzeng)
